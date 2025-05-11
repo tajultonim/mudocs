@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 
 export default function UploadPage() {
   function handleFileUpload(file: File) {
@@ -65,7 +65,7 @@ function FileInput({ onFileUpload }: { onFileUpload: (file: File) => void }) {
             Only PDF files are currently supported.
           </p>
         </div>
-        <input id="dropzone-file" type="file" className="hidden" />
+        <input onChange={(e: ChangeEvent<HTMLInputElement>) => { onFileUpload(e.target.files![0]) }} id="dropzone-file" type="file" className="hidden" />
       </label>
     </div>
   );
