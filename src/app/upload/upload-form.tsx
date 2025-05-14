@@ -1,6 +1,6 @@
 "use client";
-import { Database } from "../lib/database";
-import { useState, ChangeEvent, useCallback } from "react";
+import { Database } from "../../lib/database";
+import { useState} from "react";
 import Dropzone from "react-dropzone";
 import Image from "next/image";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
@@ -14,9 +14,13 @@ export default function UpgadForm({
   tags: Database["public"]["Tables"]["tags"]["Row"][];
   authors: Database["public"]["Tables"]["authors"]["Row"][];
 }) {
+  console.log(tags);
   const [category, setCategory] = useState("");
 
-  function handleFileUpload(file: File) {}
+  function handleFileUpload(file: File) {
+    console.log("File uploaded:", file);
+    // Handle the file upload logic here
+  }
   return (
     <>
       <div className="upload-page flex flex-col justify-center">
