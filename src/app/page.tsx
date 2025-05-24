@@ -34,7 +34,7 @@ export default async function Home() {
                 .map((a: { authors: { name: string } }) => a.authors.name)
                 .join(", ")}
               image={`https://mudocsstorage.blob.core.windows.net/${book.cover_path}`}
-              slug={book.id}
+              slug={"/file/"+book.id}
             />
           )
         )}

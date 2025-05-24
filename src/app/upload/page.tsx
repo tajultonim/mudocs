@@ -1,6 +1,11 @@
 import UploadForm from "@/components/upload-form";
 import supabase from "@/lib/supabase";
+import { Metadata } from "next";
 
+
+export const metadata: Metadata ={
+  title: "μDocs - Upload"
+}
 export default async function UploadPage() {
 
   const authorQuery = supabase.from("authors").select("*");
