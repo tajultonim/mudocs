@@ -1,99 +1,30 @@
 import BookCard from "@/components/book-card";
 import TopBar from "@/components/topbar";
+import supabase from "@/lib/supabase";
 
-const books = [
-  {
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    image: "https://picsum.photos/200/300?random=1",
-    slug: "/",
-  },
-  {
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    image: "https://picsum.photos/200/300?random=2",
-    slug: "/",
-  },
-  {
-    title: "1984",
-    author: "George Orwell",
-    image: "https://picsum.photos/200/300?random=3",
-    slug: "/",
-  },
-  {
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    image: "https://picsum.photos/200/300?random=4",
-    slug: "/",
-  },
-  {
-    title: "Moby Dick",
-    author: "Herman Melville",
-    image: "https://picsum.photos/200/300?random=5",
-    slug: "/",
-  },
-  {
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    image: "https://picsum.photos/200/300?random=6",
-    slug: "/",
-  },
-  {
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    image: "https://picsum.photos/200/300?random=7",
-    slug: "/",
-  },
-  {
-    title: "1984",
-    author: "George Orwell",
-    image: "https://picsum.photos/200/300?random=8",
-    slug: "/",
-  },
-  {
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    image: "https://picsum.photos/200/300?random=9",
-    slug: "/",
-  },
-  {
-    title: "Moby Dick",
-    author: "Herman Melville",
-    image: "https://picsum.photos/200/300?random=10",
-    slug: "/",
-  },
-  {
-    title: "1984",
-    author: "George Orwell",
-    image: "https://picsum.photos/200/300?random=11",
-    slug: "/",
-  },
-  {
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    image: "https://picsum.photos/200/300?random=12",
-    slug: "/",
-  },
-  {
-    title: "Moby Dick",
-    author: "Herman Melville",
-    image: "https://picsum.photos/200/300?random=13",
-    slug: "/",
-  },
-];
-
-export default function Home() {
+export default async function Home() {
+  const fileQuery = await supabase
+    .from("files")
+    .select(`
+    id,
+    title,
+    cover_path,
+    file_authors!file_authors_file_id_fkey(
+      authors!file_authors_author_id_fkey(name)
+    )
+  `)
+    .limit(12);
   return (
     <>
       <TopBar />
       <div className=" grid lg:grid-cols-6 sm:grid-cols-3 grid-cols-2 gap-4">
-        {books.slice(0, 12).map((book, index) => (
+        {fileQuery.data?.map((book, index) => (
           <BookCard
             key={index}
             title={book.title}
-            author={book.author}
-            image={book.image}
-            slug={book.slug}
+            author={book.file_authors.map((a) => a.authors.name).join(", ")}
+            image={`https://mudocsstorage.blob.core.windows.net/${book.cover_path}` || "https://picsum.photos/200/300?random=" + (index + 1)}
+            slug={book.id}
           />
         ))}
       </div>

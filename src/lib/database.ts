@@ -86,19 +86,19 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          slug: string | null
+          slug: string
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
-          slug?: string | null
+          slug?: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
-          slug?: string | null
+          slug?: string
         }
         Relationships: []
       }
@@ -232,6 +232,7 @@ export type Database = {
       }
       files: {
         Row: {
+          category: string
           cover_path: string | null
           created_at: string
           deleted_at: string | null
@@ -251,6 +252,7 @@ export type Database = {
           uploader_id: string | null
         }
         Insert: {
+          category?: string
           cover_path?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -270,6 +272,7 @@ export type Database = {
           uploader_id?: string | null
         }
         Update: {
+          category?: string
           cover_path?: string | null
           created_at?: string
           deleted_at?: string | null
