@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import TagsInput from "./tags-input";
 import * as authoractions from "../app/actions/author-action";
 import * as fileactions from "../app/actions/file-action";
+// import { useRouter } from "next/navigation";
 
 const FileInput = dynamic(() => import("./file-upload-input"), {
   ssr: false,
@@ -30,6 +31,7 @@ export default function UploadForm({
   const [doi, setDoi] = useState("");
   const [isbn, setIsbn] = useState("");
   const [isloading, setIsloading] = useState(false);
+  // const router= useRouter();
 
   const disabled =
     !file || !fileName || !category || isloading || !authors.length;
@@ -96,6 +98,7 @@ export default function UploadForm({
           setSelectedTags([]);
           setDoi("");
           setIsbn("");
+          // router.push("/file/" + res.data.id);
         } else {
           alert("Error uploading file: " + res.message);
         }

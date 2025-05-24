@@ -53,6 +53,7 @@ export default function TagsInput({
           list={title.trim().replace(/\s+/g, "-").toLowerCase()}
           placeholder={placeholder || "Enter anther value..."}
           onKeyUpCapture={async (e) => {
+            e.preventDefault();
             const target = e.target as HTMLInputElement;
             const val = target.value
               .toLowerCase()
