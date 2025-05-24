@@ -11,6 +11,8 @@
   "dependencies": {
     "@azure/storage-blob": "^12.27.0",
     "@supabase/supabase-js": "^2.49.4",
+    "@types/pdfjs-dist": "^2.10.378",
+    "@types/react-dropzone": "^5.1.0",
     "formidable": "^3.5.4",
     "next": "15.3.2",
     "pdf2pic": "^3.1.4",
@@ -30,5 +32,12 @@
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
