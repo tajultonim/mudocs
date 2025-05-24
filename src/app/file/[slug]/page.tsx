@@ -1,15 +1,14 @@
 import supabase from "@/lib/supabase";
-import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 export default async function FilePage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  let fileData = await supabase
+  const fileData = await supabase
     .from("files")
     .select(
       `*,
@@ -28,7 +27,7 @@ export default async function FilePage({
     <div className="">
       <Image
         src={`https://mudocsstorage.blob.core.windows.net/${fileData.data?.cover_path}`}
-        alt={fileData.data?.title}
+        alt={fileData.data?.title || "Book Cover"}
         width={300}
         height={400}
       />
@@ -36,18 +35,22 @@ export default async function FilePage({
       <p className="text-gray-600">{fileData.data?.description}</p>
       <p className="text-gray-600">
         Tags:{" "}
-        {fileData.data?.file_tags.map((tag: any) => tag.tags.name).join(", ")}
+        {fileData.data?.file_tags
+          .map((tag) => tag.tags?.name ?? "")
+          .join(", ")}
       </p>
       <p className="text-gray-600">
         Authors:{" "}
         {fileData.data?.file_authors
-          .map((author: any) => author.authors.name)
+          .map(
+            (author: { authors: { name: string } }) => author.authors.name ?? ""
+          )
           .join(", ")}
       </p>
-      <p className="text-gray-600">ISBN: {fileData.data?.isbn}</p>
-      <p className="text-gray-600">DOI: {fileData.data?.doi}</p>
       <p className="text-gray-600">Type: {fileData.data?.type}</p>
-      <p className="text-gray-600">Size: {(fileData.data?.size_bytes/(1024*1024)).toFixed(2)} MB</p>
+      <p className="text-gray-600">
+        Size: {((fileData.data?.size_bytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
+      </p>
       <Link
         href={`https://mudocsstorage.blob.core.windows.net/${fileData.data?.file_path}`}
         className="text-blue-500 hover:underline"
