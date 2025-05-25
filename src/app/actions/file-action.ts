@@ -1,45 +1,10 @@
 "use server";
 
+import { generateUploadSASUrl, generateDownloadSASUrl } from "@/lib/azure";
 import supabase from "@/lib/supabase";
-import {
-  BlobSASPermissions,
-  generateBlobSASQueryParameters,
-  StorageSharedKeyCredential,
-  SASProtocol,
-} from "@azure/storage-blob";
 
 export async function getSasUrl(hash: string, container: string) {
-  const account = process.env.AZURE_STORAGE_ACCOUNT;
-  const accountKey = process.env.AZURE_STORAGE_KEY;
-
-  if (!account || !accountKey) {
-    throw new Error("Azure Storage account or key is not defined.");
-  }
-  if (!hash || !container) {
-    throw new Error("Hash and container must be provided.");
-  }
-
-  const sharedKeyCredential = new StorageSharedKeyCredential(
-    account,
-    accountKey
-  );
-  const permissions = BlobSASPermissions.parse("cw");
-  const expiresOn = new Date(new Date().valueOf() + 3600 * 1000); // 1 hour
-
-  const sasToken = generateBlobSASQueryParameters(
-    {
-      containerName: container,
-      blobName: hash,
-      permissions,
-      expiresOn,
-      protocol: SASProtocol.HttpsAndHttp,
-    },
-    sharedKeyCredential
-  ).toString();
-
-  console.log(sasToken);
-
-  return `https://${account}.blob.core.windows.net/${container}/${hash}?${sasToken}`;
+  return generateUploadSASUrl(hash, container);
 }
 
 export async function create({
@@ -49,13 +14,13 @@ export async function create({
   mime_type,
   size_bytes,
   type,
-  category,
   tags,
   authors,
   description,
   isbn,
   doi,
   cover_path,
+  user_id,
 }: {
   title: string;
   file_path: string;
@@ -63,13 +28,13 @@ export async function create({
   mime_type: string;
   size_bytes: number;
   type: string;
-  category: string;
   tags: string[];
   authors: string[];
   description?: string;
   isbn?: string;
   doi?: string;
   cover_path?: string;
+  user_id?: string;
 }) {
   if (
     !sha256_hash ||
@@ -77,49 +42,49 @@ export async function create({
     !mime_type ||
     !type ||
     !size_bytes ||
-    !title ||
-    !category
+    !title
   ) {
     return { status: "error", message: "Missing required fields." };
   }
 
-  const fileres = await supabase
-    .from("files")
-    .insert({
-      title,
-      file_path,
-      sha256_hash,
-      mime_type,
-      size_bytes,
-      type,
-      description,
-      extra_meta: {
-        isbn,
-        doi,
-      },
-      cover_path,
-    })
-    .select("id")
-    .single();
-  if (fileres.error) {
-    return { status: "error", message: fileres.error.message };
+  const { data, error } = await supabase.rpc("create_file", {
+    title,
+    file_path,
+    sha256_hash,
+    mime_type,
+    size_bytes,
+    type,
+    description: description || "",
+    extra_meta: { isbn, doi },
+    cover_path: cover_path || "",
+    tag_ids: tags,
+    author_ids: authors,
+    user_id: user_id || "",
+  });
+  if (error) {
+    return { status: "error", message: error.message };
   }
-
-  await Promise.all([
-    ...tags.map((id) =>
-      supabase
-        .from("file_tags")
-        .insert({ file_id: fileres.data.id, tag_id: id })
-    ),
-    ...authors.map((id, index) =>
-      supabase
-        .from("file_authors")
-        .insert({ file_id: fileres.data.id, author_id: id, order: index })
-    ),
-  ]);
   return {
     status: "success",
     message: "File metadata created successfully.",
-    data: fileres.data,
+    data: data,
   };
+}
+
+export async function createDownload(file_id: string, user_id: string) {
+  console.log(user_id);
+
+  if (!file_id) {
+    return { status: "error", message: "Missing required fields." };
+  }
+  const res = await supabase.rpc("increase_download_count", {
+    file_id,
+  });
+
+  if (res.error || !res.data) {
+    return { status: "error", message: res.error?.message };
+  }
+  const downloadURL = await generateDownloadSASUrl(res.data, "document-files");
+
+  return { status: "success", data: downloadURL };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState } from "react";
+import { useState } from "react";
 import { IoCloseOutline } from "react-icons/io5";
 
 export default function TagsInput({
@@ -14,20 +14,25 @@ export default function TagsInput({
   title: string;
   tags: { name: string; id: string }[];
   onChange: (e: { value: string[]; entry: string }) => void;
-  onNewTag?: (tag: string) => boolean | Promise<boolean>;
+  onNewTag?: (
+    tag: string
+  ) =>
+    | { status: string; data?: { id: string } }
+    | Promise<{ status: string; data?: { id: string } }>;
   allowNewTag?: boolean;
   placeholder?: string;
 }) {
   const [alltags, setAlltags] = useState<string[]>(tags.map((tag) => tag.name));
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const tagOptions = new Set(alltags.filter((tag) => !selectedTags.has(tag)));
+  const newtags: { id: string; name: string }[] = [];
 
   const fireChange = (val: string) => {
     onChange({
-        entry: val,
-        value: Array.from(selectedTags.values()).map((tagname) => {
-        const tag = tags.find((tag) => tag.name === tagname);
-         return tag ? tag.id : tagname.trim().replace(/\s+/g, "-");
+      entry: val,
+      value: Array.from(selectedTags.values()).map((tagname) => {
+        const tag = tags.concat(newtags).find((tag) => tag.name === tagname);
+        return tag ? tag.id : tagname.trim().replace(/\s+/g, "-");
       }),
     });
   };
@@ -81,9 +86,10 @@ export default function TagsInput({
                 if (!isconfirmed) {
                   return;
                 } else {
-                  const success = await onNewTag?.(val);
+                  const newtagres = await onNewTag?.(val);
                   setAlltags((prev) => [...prev, val]);
-                  if (!success) {
+                  newtags.push({ id: newtagres?.data?.id || "", name: val });
+                  if (newtagres?.status !== "success") {
                     return;
                   }
                 }
@@ -106,5 +112,3 @@ export default function TagsInput({
     </>
   );
 }
-
-

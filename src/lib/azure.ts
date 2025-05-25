@@ -1,17 +1,46 @@
-import { BlobServiceClient } from '@azure/storage-blob'
+import {
+  BlobSASPermissions,
+  generateBlobSASQueryParameters,
+  StorageSharedKeyCredential,
+  SASProtocol,
+} from "@azure/storage-blob";
 
-const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING!)
+const account = process.env.AZURE_STORAGE_ACCOUNT as string;
+const accountKey = process.env.AZURE_STORAGE_KEY as string;
 
-export async function uploadFileToAzure(containerName: string, blobName: string, buffer: Buffer, mimeType: string) {
-  const containerClient = blobServiceClient.getContainerClient(containerName)
-  await containerClient.createIfNotExists()
-  const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
+export async function generateUploadSASUrl(hash: string, container: string) {
+  const permissions = BlobSASPermissions.parse("c");
+  const expiresOn = new Date(new Date().valueOf() + 3600 * 1000); // 1 hour
 
-  await blockBlobClient.uploadData(buffer, {
-    blobHTTPHeaders: {
-      blobContentType: mimeType,
+  const sasToken = generateBlobSASQueryParameters(
+    {
+      containerName: container,
+      blobName: hash,
+      permissions,
+      expiresOn,
+      protocol: SASProtocol.HttpsAndHttp,
     },
-  })
+    sharedKeyCredential
+  ).toString();
 
-  return blockBlobClient.url
+  return `https://${account}.blob.core.windows.net/${container}/${hash}?${sasToken}`;
+}
+
+export async function generateDownloadSASUrl(hash: string, container: string) {
+  const permissions = BlobSASPermissions.parse("r");
+  const expiresOn = new Date(new Date().valueOf() + 3600 * 1000); // 1 hour
+
+  const sasToken = generateBlobSASQueryParameters(
+    {
+      containerName: container,
+      blobName: hash,
+      permissions,
+      expiresOn,
+      protocol: SASProtocol.HttpsAndHttp,
+    },
+    sharedKeyCredential
+  ).toString();
+
+  return `https://${account}.blob.core.windows.net/${container}/${hash}?${sasToken}`;
 }

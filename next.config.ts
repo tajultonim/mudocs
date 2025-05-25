@@ -7,7 +7,13 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    domains: ["picsum.photos", "mudocsstorage.blob.core.windows.net"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "mudocsstorage.blob.core.windows.net",
+        pathname: "/file-covers/**",
+      },
+    ],
   },
 };
 

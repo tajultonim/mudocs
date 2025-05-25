@@ -1,6 +1,6 @@
+import DownloadButton from "@/components/download-button";
 import supabase from "@/lib/supabase";
 import Image from "next/image";
-import Link from "next/link";
 
 export default async function FilePage({
   params,
@@ -8,12 +8,14 @@ export default async function FilePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
   const fileData = await supabase
     .from("files")
     .select(
       `*,
       file_authors!file_authors_file_id_fkey(
-        authors!file_authors_author_id_fkey(name)
+        authors!file_authors_author_id_fkey(name),
+        order
       ),
       file_tags!file_tags_file_id_fkey(
         tags!file_tags_tag_id_fkey(name)
@@ -35,13 +37,12 @@ export default async function FilePage({
       <p className="text-gray-600">{fileData.data?.description}</p>
       <p className="text-gray-600">
         Tags:{" "}
-        {fileData.data?.file_tags
-          .map((tag) => tag.tags?.name ?? "")
-          .join(", ")}
+        {fileData.data?.file_tags.map((tag) => tag.tags?.name ?? "").join(", ")}
       </p>
       <p className="text-gray-600">
         Authors:{" "}
         {fileData.data?.file_authors
+          .sort((a, b) => a.order - b.order)
           .map(
             (author: { authors: { name: string } }) => author.authors.name ?? ""
           )
@@ -51,12 +52,13 @@ export default async function FilePage({
       <p className="text-gray-600">
         Size: {((fileData.data?.size_bytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
       </p>
-      <Link
-        href={`https://mudocsstorage.blob.core.windows.net/${fileData.data?.file_path}`}
-        className="text-blue-500 hover:underline"
-      >
-        Download File
-      </Link>
+      <p className="text-gray-600">
+        Download Count: {fileData.data?.download_count || 0}
+      </p>
+      <DownloadButton
+        file_id={fileData.data?.id || ""}
+        file_title={fileData.data?.title}
+      />
     </div>
   );
 }

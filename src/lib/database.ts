@@ -147,21 +147,21 @@ export type Database = {
           created_at: string
           file_id: string
           id: string
-          order: number | null
+          order: number
         }
         Insert: {
           author_id: string
           created_at?: string
           file_id: string
           id?: string
-          order?: number | null
+          order?: number
         }
         Update: {
           author_id?: string
           created_at?: string
           file_id?: string
           id?: string
-          order?: number | null
+          order?: number
         }
         Relationships: [
           {
@@ -232,12 +232,11 @@ export type Database = {
       }
       files: {
         Row: {
-          category: string
           cover_path: string | null
           created_at: string
           deleted_at: string | null
           description: string | null
-          download_count: number | null
+          download_count: number
           extra_meta: Json | null
           file_path: string
           id: string
@@ -245,19 +244,17 @@ export type Database = {
           mime_type: string
           sha256_hash: string
           size_bytes: number
-          tags: string[] | null
           title: string
           type: string
           updated_at: string | null
           uploader_id: string | null
         }
         Insert: {
-          category?: string
           cover_path?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
-          download_count?: number | null
+          download_count?: number
           extra_meta?: Json | null
           file_path: string
           id?: string
@@ -265,19 +262,17 @@ export type Database = {
           mime_type: string
           sha256_hash: string
           size_bytes: number
-          tags?: string[] | null
           title: string
           type: string
           updated_at?: string | null
           uploader_id?: string | null
         }
         Update: {
-          category?: string
           cover_path?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
-          download_count?: number | null
+          download_count?: number
           extra_meta?: Json | null
           file_path?: string
           id?: string
@@ -285,7 +280,6 @@ export type Database = {
           mime_type?: string
           sha256_hash?: string
           size_bytes?: number
-          tags?: string[] | null
           title?: string
           type?: string
           updated_at?: string | null
@@ -410,7 +404,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_file: {
+        Args: {
+          title: string
+          file_path: string
+          sha256_hash: string
+          mime_type: string
+          size_bytes: number
+          type: string
+          description: string
+          extra_meta: Json
+          cover_path: string
+          tag_ids: string[]
+          author_ids: string[]
+          user_id: string
+        }
+        Returns: string
+      }
+      increase_download_count: {
+        Args: { file_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

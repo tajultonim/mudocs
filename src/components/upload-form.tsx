@@ -68,34 +68,15 @@ export default function UploadForm({
             console.log(`Upload progress: ${percent.toFixed(2)}%`);
           },
         }),
-
-        // fetch(FileSASUrl, {
-        //   method: "PUT",
-        //   headers: {
-        //     "x-ms-blob-type": "BlockBlob",
-        //     "Content-Type": file.type,
-        //   },
-        //   body: file,
-        // }),
-        // fetch(CoverSASUrl, {
-        //   method: "PUT",
-        //   headers: {
-        //     "x-ms-blob-type": "BlockBlob",
-        //     "Content-Type": coverFile.type,
-        //   },
-        //   body: coverFile,
-        // }),
       ]);
 
-      // if (FileRes.ok && CoverRes.ok) {
       const res = await fileactions.create({
         title: fileName,
         file_path: "document-files/" + hash,
         sha256_hash: hash,
         mime_type: file.type,
         size_bytes: file.size,
-        type: "file",
-        category: category,
+        type: category,
         tags: selectedTags,
         authors: selectedAuthors,
         description: description,
@@ -105,7 +86,6 @@ export default function UploadForm({
       });
       if (res.status === "success") {
         alert("File uploaded successfully!");
-        // Reset form
         setFile(null);
         setCover("");
         setHash("");
@@ -117,16 +97,13 @@ export default function UploadForm({
         setDoi("");
         setIsbn("");
         await Promise.all([
-          revalidateSSGPath(`/file/${res.data?.id}`),
+          revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
-        router.push(`/file/${res.data?.id}`);
+        router.push(`/file/${res.data}`);
       } else {
         alert("Error uploading file: " + res.message);
       }
-      // } else {
-      //   alert("Error uploading file to Azure Blob Storage.");
-      // }
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error message:", error.message);
@@ -198,9 +175,11 @@ export default function UploadForm({
               allowNewTag
               placeholder="Enter author name..."
               onNewTag={async (name: string) => {
-                alert("ok");
                 const res = await authoractions.create(name);
-                return res?.status == "success";
+                return {
+                  status: res?.status || "error",
+                  data: res?.data,
+                };
               }}
               onChange={(e) => {
                 console.log(e);
