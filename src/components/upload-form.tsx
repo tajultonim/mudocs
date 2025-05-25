@@ -37,7 +37,7 @@ export default function UploadForm({
   const router = useRouter();
 
   const disabled =
-    !file || !fileName || !category || isloading || !authors.length;
+    !file || !fileName || !category || isloading || !selectedAuthors.length;
 
   async function handleFileUpload() {
     try {
@@ -105,10 +105,15 @@ export default function UploadForm({
         alert("Error uploading file: " + res.message);
       }
     } catch (error) {
-      if (error instanceof Error) {
+      const e = error as { code?: string; message?: string };
+      if (e["code"] == "UnauthorizedBlobOverwrite") {
+        alert("File already exists in our server.");
+      } else if (error instanceof Error) {
         console.error("Error message:", error.message);
+        alert("Error uploading file: " + error.message);
       } else {
         console.error("Unexpected error:", error);
+        alert("Error uploading file: " + error);
       }
     } finally {
       setIsloading(false);
