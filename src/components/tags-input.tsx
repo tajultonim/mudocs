@@ -22,6 +22,16 @@ export default function TagsInput({
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const tagOptions = new Set(alltags.filter((tag) => !selectedTags.has(tag)));
 
+  const fireChange = (val: string) => {
+    onChange({
+        entry: val,
+        value: Array.from(selectedTags.values()).map((tagname) => {
+        const tag = tags.find((tag) => tag.name === tagname);
+         return tag ? tag.id : tagname.trim().replace(/\s+/g, "-");
+      }),
+    });
+  };
+
   return (
     <>
       <p>{title}</p>
@@ -41,6 +51,7 @@ export default function TagsInput({
                     up.delete(tag);
                     return up;
                   });
+                  fireChange("");
                 }}
               >
                 <IoCloseOutline />
@@ -82,13 +93,7 @@ export default function TagsInput({
                 target.value = "";
                 return up;
               });
-              onChange({
-                entry: val,
-                value: Array.from(selectedTags.values()).map((tagname) => {
-                  const tag = tags.find((tag) => tag.name === tagname);
-                  return tag ? tag.id : tagname.trim().replace(/\s+/g, "-");
-                }),
-              });
+              fireChange(val);
             }
           }}
         />

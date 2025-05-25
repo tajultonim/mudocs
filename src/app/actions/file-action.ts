@@ -111,10 +111,10 @@ export async function create({
         .from("file_tags")
         .insert({ file_id: fileres.data.id, tag_id: id })
     ),
-    ...authors.map((id) =>
+    ...authors.map((id, index) =>
       supabase
         .from("file_authors")
-        .insert({ file_id: fileres.data.id, author_id: id })
+        .insert({ file_id: fileres.data.id, author_id: id, order: index })
     ),
   ]);
   return {
