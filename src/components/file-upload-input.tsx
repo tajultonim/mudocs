@@ -7,6 +7,7 @@ import Dropzone, {
 } from "react-dropzone";
 import Image from "next/image";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import { createSHA256 } from "hash-wasm";
 
 GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
 
@@ -109,8 +110,9 @@ const extractCoverImage = async (file: File): Promise<string> => {
 
 // Generates SHA-256 hash of the file
 const generateSHA256 = async (file: File): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+   const hasher = await createSHA256();
+    hasher.init();
+    const arrayBuffer = await file.arrayBuffer();
+    hasher.update(new Uint8Array(arrayBuffer));
+    return hasher.digest('hex');
 };

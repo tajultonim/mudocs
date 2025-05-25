@@ -52,8 +52,8 @@ export default function TagsInput({
           className=" outline-0 w-full min-w-sm"
           list={title.trim().replace(/\s+/g, "-").toLowerCase()}
           placeholder={placeholder || "Enter anther value..."}
-          onKeyUpCapture={async (e) => {
-            e.preventDefault();
+          enterKeyHint="next"
+          onKeyDown={async (e) => {
             const target = e.target as HTMLInputElement;
             const val = target.value
               .toLowerCase()

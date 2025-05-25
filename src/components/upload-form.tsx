@@ -6,7 +6,9 @@ import dynamic from "next/dynamic";
 import TagsInput from "./tags-input";
 import * as authoractions from "../app/actions/author-action";
 import * as fileactions from "../app/actions/file-action";
-// import { useRouter } from "next/navigation";
+import { BlockBlobClient } from "@azure/storage-blob";
+import { revalidateSSGPath } from "@/app/actions/revalidation";
+import { useRouter } from "next/navigation";
 
 const FileInput = dynamic(() => import("./file-upload-input"), {
   ssr: false,
@@ -31,7 +33,8 @@ export default function UploadForm({
   const [doi, setDoi] = useState("");
   const [isbn, setIsbn] = useState("");
   const [isloading, setIsloading] = useState(false);
-  // const router= useRouter();
+  const [percentage, setPercentage] = useState(0);
+  const router = useRouter();
 
   const disabled =
     !file || !fileName || !category || isloading || !authors.length;
@@ -48,65 +51,88 @@ export default function UploadForm({
       ]);
 
       const coverFile = await dataUrlToBlob(cover);
+      const fileBlockBlobClient = new BlockBlobClient(FileSASUrl);
+      const coverBlockBlobClient = new BlockBlobClient(CoverSASUrl);
+      // const [FileRes, CoverRes] =
+      await Promise.all([
+        fileBlockBlobClient.uploadBrowserData(file, {
+          onProgress: (progress) => {
+            const percent = (progress.loadedBytes / file.size) * 100;
+            setPercentage(percent);
+            console.log(`Upload progress: ${percent.toFixed(2)}%`);
+          },
+        }),
+        coverBlockBlobClient.uploadBrowserData(coverFile, {
+          onProgress: (progress) => {
+            const percent = (progress.loadedBytes / coverFile.size) * 100;
+            console.log(`Upload progress: ${percent.toFixed(2)}%`);
+          },
+        }),
 
-      const [FileRes, CoverRes] = await Promise.all([
-        fetch(FileSASUrl, {
-          method: "PUT",
-          headers: {
-            "x-ms-blob-type": "BlockBlob",
-            "Content-Type": file.type,
-          },
-          body: file,
-        }),
-        fetch(CoverSASUrl, {
-          method: "PUT",
-          headers: {
-            "x-ms-blob-type": "BlockBlob",
-            "Content-Type": coverFile.type,
-          },
-          body: coverFile,
-        }),
+        // fetch(FileSASUrl, {
+        //   method: "PUT",
+        //   headers: {
+        //     "x-ms-blob-type": "BlockBlob",
+        //     "Content-Type": file.type,
+        //   },
+        //   body: file,
+        // }),
+        // fetch(CoverSASUrl, {
+        //   method: "PUT",
+        //   headers: {
+        //     "x-ms-blob-type": "BlockBlob",
+        //     "Content-Type": coverFile.type,
+        //   },
+        //   body: coverFile,
+        // }),
       ]);
 
-      if (FileRes.ok && CoverRes.ok) {
-        const res = await fileactions.create({
-          title: fileName,
-          file_path: "document-files/" + hash,
-          sha256_hash: hash,
-          mime_type: file.type,
-          size_bytes: file.size,
-          type: "file",
-          category: category,
-          tags: selectedTags,
-          authors: selectedAuthors,
-          description: description,
-          isbn: isbn,
-          doi: doi,
-          cover_path: "file-covers/" + hash,
-        });
-        setIsloading(false);
-        if (res.status === "success") {
-          alert("File uploaded successfully!");
-          // Reset form
-          setFile(null);
-          setCover("");
-          setHash("");
-          setFileName("");
-          setDescription("");
-          setCategory("");
-          setSelectedAuthors([]);
-          setSelectedTags([]);
-          setDoi("");
-          setIsbn("");
-          // router.push("/file/" + res.data.id);
-        } else {
-          alert("Error uploading file: " + res.message);
-        }
+      // if (FileRes.ok && CoverRes.ok) {
+      const res = await fileactions.create({
+        title: fileName,
+        file_path: "document-files/" + hash,
+        sha256_hash: hash,
+        mime_type: file.type,
+        size_bytes: file.size,
+        type: "file",
+        category: category,
+        tags: selectedTags,
+        authors: selectedAuthors,
+        description: description,
+        isbn: isbn,
+        doi: doi,
+        cover_path: "file-covers/" + hash,
+      });
+      if (res.status === "success") {
+        alert("File uploaded successfully!");
+        // Reset form
+        setFile(null);
+        setCover("");
+        setHash("");
+        setFileName("");
+        setDescription("");
+        setCategory("");
+        setSelectedAuthors([]);
+        setSelectedTags([]);
+        setDoi("");
+        setIsbn("");
+        await Promise.all([
+          revalidateSSGPath(`/file/${res.data?.id}`),
+          revalidateSSGPath("/"),
+        ]);
+        router.push(`/file/${res.data?.id}`);
       } else {
-        alert("Error uploading file to Azure Blob Storage.");
+        alert("Error uploading file: " + res.message);
       }
+      // } else {
+      //   alert("Error uploading file to Azure Blob Storage.");
+      // }
     } catch (error) {
-      console.log(error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
     } finally {
       setIsloading(false);
     }
@@ -220,7 +246,7 @@ export default function UploadForm({
             }}
             className="bg-gray-700 py-1 cursor-pointer hover:bg-gray-600 disabled:bg-gray-500 rounded-md text-white"
           >
-            {isloading ? "Loading..." : "Upload"}
+            {isloading ? `${percentage}% uploaded...` : "Upload"}
           </button>
         </div>
       </div>

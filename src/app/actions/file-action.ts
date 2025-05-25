@@ -38,7 +38,6 @@ export async function getSasUrl(hash: string, container: string) {
   ).toString();
 
   console.log(sasToken);
-  
 
   return `https://${account}.blob.core.windows.net/${container}/${hash}?${sasToken}`;
 }
@@ -106,7 +105,7 @@ export async function create({
     return { status: "error", message: fileres.error.message };
   }
 
- await Promise.all([
+  await Promise.all([
     ...tags.map((id) =>
       supabase
         .from("file_tags")
@@ -118,5 +117,9 @@ export async function create({
         .insert({ file_id: fileres.data.id, author_id: id })
     ),
   ]);
-  return { status: "success", message: "File metadata created successfully." };
+  return {
+    status: "success",
+    message: "File metadata created successfully.",
+    data: fileres.data,
+  };
 }
