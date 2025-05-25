@@ -60,3 +60,12 @@ export default async function FilePage({
     </div>
   );
 }
+
+export async function generateStaticParams() {
+  const res = await supabase.from("files").select("id"); // returns list of books
+  const books = res.data || [];
+
+  return books.map((book: { id: string }) => ({
+    slug: book.id,
+  }));
+}
