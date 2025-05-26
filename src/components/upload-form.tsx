@@ -100,14 +100,15 @@ export default function UploadForm({
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
-        router.push(`/file/${res.data}`);
+       router.push(`/file/${res.data}`);
       } else {
         alert("Error uploading file: " + res.message);
       }
     } catch (error) {
       const e = error as { code?: string; message?: string };
       if (e["code"] == "UnauthorizedBlobOverwrite") {
-        alert("File already exists in our server.");
+        alert("File already exists in our server.\n hash: " + hash);
+        console.log("File already exists\n hash: " + hash);
       } else if (error instanceof Error) {
         console.error("Error message:", error.message);
         alert("Error uploading file: " + error.message);

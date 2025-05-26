@@ -6,7 +6,7 @@ import Dropzone, {
   DropzoneInputProps,
 } from "react-dropzone";
 import Image from "next/image";
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import { getDocument, GlobalWorkerOptions,  } from "pdfjs-dist";
 import { createSHA256 } from "hash-wasm";
 
 GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
@@ -92,21 +92,42 @@ export default function FileInput({
   );
 }
 
-// Extracts the cover image (first page) from a PDF as a PNG Data URL
-const extractCoverImage = async (file: File): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await getDocument({ data: arrayBuffer }).promise;
-  const page = await pdf.getPage(1);
+async function extractCoverImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
 
-  const viewport = page.getViewport({ scale: 2 });
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d")!;
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
+    fileReader.onload = async () => {
+      try {
+        const typedArray = new Uint8Array(fileReader.result as ArrayBuffer);
+        const pdf = await getDocument({ data: typedArray }).promise;
 
-  await page.render({ canvasContext: context, viewport }).promise;
-  return canvas.toDataURL("image/png");
-};
+        const page = await pdf.getPage(1); // First page = cover
+
+        const viewport = page.getViewport({ scale: 2 }); // Adjust scale as needed
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        if (!context) throw new Error("Canvas context not available");
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        const dataUrl = canvas.toDataURL("image/png");
+        resolve(dataUrl);
+      } catch (error) {
+        reject("Failed to extract cover image: " + error);
+      }
+    };
+
+    fileReader.onerror = () => {
+      reject("Failed to read the file");
+    };
+
+    fileReader.readAsArrayBuffer(file);
+  });
+}
 
 // Generates SHA-256 hash of the file
 const generateSHA256 = async (file: File): Promise<string> => {

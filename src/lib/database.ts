@@ -197,21 +197,21 @@ export type Database = {
       file_tags: {
         Row: {
           created_at: string
-          file_id: string | null
+          file_id: string
           id: string
-          tag_id: string | null
+          tag_id: string
         }
         Insert: {
           created_at?: string
-          file_id?: string | null
+          file_id: string
           id?: string
-          tag_id?: string | null
+          tag_id: string
         }
         Update: {
           created_at?: string
-          file_id?: string | null
+          file_id?: string
           id?: string
-          tag_id?: string | null
+          tag_id?: string
         }
         Relationships: [
           {
@@ -408,7 +408,7 @@ export type Database = {
         Args: {
           title: string
           file_path: string
-          sha256_hash: string
+          hash: string
           mime_type: string
           size_bytes: number
           type: string

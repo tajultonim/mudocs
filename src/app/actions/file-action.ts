@@ -50,7 +50,7 @@ export async function create({
   const { data, error } = await supabase.rpc("create_file", {
     title,
     file_path,
-    sha256_hash,
+    hash:sha256_hash,
     mime_type,
     size_bytes,
     type,
@@ -59,9 +59,10 @@ export async function create({
     cover_path: cover_path || "",
     tag_ids: tags,
     author_ids: authors,
-    user_id: user_id || "",
+    user_id: (user_id || null) as string,
   });
   if (error) {
+    console.log(error);
     return { status: "error", message: error.message };
   }
   return {

@@ -90,6 +90,7 @@ export default function TagsInput({
                   setAlltags((prev) => [...prev, val]);
                   newtags.push({ id: newtagres?.data?.id || "", name: val });
                   if (newtagres?.status !== "success") {
+                    console.log(newtagres)
                     return;
                   }
                 }
