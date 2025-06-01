@@ -15,8 +15,7 @@ export default async function Home() {
       order
     )
   `
-    ).order("title", { ascending: true })
-    .limit(12);
+    ).order("title", { ascending: true });
   return (
     <>
       <TopBar />
