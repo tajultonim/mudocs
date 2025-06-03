@@ -26,7 +26,7 @@ export default function SearchBar() {
   );
   const [isFocused, setIsFocused] = useState(false);
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && query.trim()) {
+    if (e.key === "Enter" && query.trim().length > 3) {
       const response = await searchWithQuery(query);
       if (response.status === "success") {
         setSearchresults(response.results as unknown as SearchResultType[]);
@@ -42,6 +42,7 @@ export default function SearchBar() {
         <IoSearch />
         <input
           value={query}
+          enterKeyHint="next"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           className=" outline-0"
