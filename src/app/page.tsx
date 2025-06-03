@@ -2,7 +2,6 @@ import BookCard from "@/components/book-card";
 import TopBar from "@/components/topbar";
 import supabase from "@/lib/supabase";
 import { SearchParams } from "next/dist/server/request/search-params";
-import { useSearchParams } from "next/navigation";
 
 export default async function Home({
   searchParams,
