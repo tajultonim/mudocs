@@ -3,16 +3,21 @@ import { MdArrowRight } from "react-icons/md";
 
 const tags = [
   { name: "All", slug: "" },
-  { name: "Books", slug: "books" },
-  { name: "Papers", slug: "papers" },
-  { name: "Notes", slug: "notes" },
+  { name: "Books", slug: "book" },
+  { name: "Papers", slug: "paper" },
+  { name: "Notes", slug: "note" },
 ];
-export default function TopBar() {
+export default function TopBar({ activeTag }: { activeTag: string }) {
   return (
     <div className=" w-full flex justify-between mb-4">
       <div className="flex gap-2">
         {tags.map((tag) => (
-          <Tag key={tag.slug} name={tag.name} slug={tag.slug} active={tag.slug==""} />
+          <Tag
+            key={tag.slug}
+            name={tag.name}
+            slug={tag.slug}
+            active={tag.slug == activeTag}
+          />
         ))}
       </div>
       <div className="">
@@ -38,7 +43,9 @@ function Tag({
     <Link href={slug == "" ? "/" : `/?tab=${slug}`}>
       <div
         className={`${
-          active ? "bg-white text-gray-800 " : "bg-gray-800 text-white hover:bg-gray-900"
+          active
+            ? "bg-white text-gray-800 "
+            : "bg-gray-800 text-white hover:bg-gray-900"
         } px-2 py-1 rounded-2xl cursor-pointer`}
       >
         <p className=" text-sm">{name}</p>

@@ -1,8 +1,15 @@
 import BookCard from "@/components/book-card";
 import TopBar from "@/components/topbar";
 import supabase from "@/lib/supabase";
+import { SearchParams } from "next/dist/server/request/search-params";
+import { useSearchParams } from "next/navigation";
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
   const fileQuery = await supabase
     .from("files")
     .select(
@@ -13,25 +20,29 @@ export default async function Home() {
     file_authors!file_authors_file_id_fkey(
       authors!file_authors_author_id_fkey(name),
       order
-    )
+    ),
+    type
   `
-    ).order("title", { ascending: true });
+    )
+    .order("title", { ascending: true });
   return (
     <>
-      <TopBar />
+      <TopBar activeTag={(params.tab as string) || ""} />
       <div className=" grid lg:grid-cols-6 sm:grid-cols-3 grid-cols-2 gap-4">
-        {fileQuery.data?.map((book) => (
-          <BookCard
-            key={book.id}
-            title={book.title}
-            author={book.file_authors
-              .sort((a, b) => a.order - b.order)
-              .map((a: { authors: { name: string } }) => a.authors.name)
-              .join(", ")}
-            image={`https://mudocsstorage.blob.core.windows.net/${book.cover_path}`}
-            slug={"/file/" + book.id}
-          />
-        ))}
+        {fileQuery.data
+          ?.filter((book) => (params.tab ? book.type == params.tab : true))
+          .map((book) => (
+            <BookCard
+              key={book.id}
+              title={book.title}
+              author={book.file_authors
+                .sort((a, b) => a.order - b.order)
+                .map((a: { authors: { name: string } }) => a.authors.name)
+                .join(", ")}
+              image={`https://mudocsstorage.blob.core.windows.net/${book.cover_path}`}
+              slug={"/file/" + book.id}
+            />
+          ))}
       </div>
     </>
   );
