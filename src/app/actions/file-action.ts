@@ -4,6 +4,17 @@ import { generateUploadSASUrl, generateDownloadSASUrl } from "@/lib/azure";
 import supabase from "@/lib/supabase";
 
 export async function getSasUrl(hash: string, container: string) {
+  if (!hash || !container) {
+    return new Error("Missing required parameters: hash or container.");
+  }
+  const efile = await supabase
+    .from("files")
+    .select("id")
+    .eq("sha256_hash", hash)
+    .single();
+  if (efile.data) {
+    return new Error("File already exists in the database.");
+  }
   return generateUploadSASUrl(hash, container);
 }
 
@@ -50,7 +61,7 @@ export async function create({
   const { data, error } = await supabase.rpc("create_file", {
     title,
     file_path,
-    hash:sha256_hash,
+    hash: sha256_hash,
     mime_type,
     size_bytes,
     type,

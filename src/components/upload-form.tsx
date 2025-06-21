@@ -51,9 +51,8 @@ export default function UploadForm({
       ]);
 
       const coverFile = await dataUrlToBlob(cover);
-      const fileBlockBlobClient = new BlockBlobClient(FileSASUrl);
-      const coverBlockBlobClient = new BlockBlobClient(CoverSASUrl);
-      // const [FileRes, CoverRes] =
+      const fileBlockBlobClient = new BlockBlobClient(FileSASUrl as string);
+      const coverBlockBlobClient = new BlockBlobClient(CoverSASUrl as string);
       await Promise.all([
         fileBlockBlobClient.uploadBrowserData(file, {
           onProgress: (progress) => {
@@ -100,7 +99,7 @@ export default function UploadForm({
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
-       router.push(`/file/${res.data}`);
+        router.push(`/file/${res.data}`);
       } else {
         alert("Error uploading file: " + res.message);
       }

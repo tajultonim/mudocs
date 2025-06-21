@@ -10,7 +10,7 @@ const accountKey = process.env.AZURE_STORAGE_KEY as string;
 
 const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
 export async function generateUploadSASUrl(hash: string, container: string) {
-  const permissions = BlobSASPermissions.parse("c");
+  const permissions = BlobSASPermissions.parse("cw");
   const expiresOn = new Date(new Date().valueOf() + 3600 * 1000); // 1 hour
 
   const sasToken = generateBlobSASQueryParameters(

@@ -5,8 +5,7 @@ import { IconType } from "react-icons";
 import { FaBookmark } from "react-icons/fa";
 import { IoIosHelpCircle } from "react-icons/io";
 import { IoCloudUpload, IoHomeSharp, IoSettings } from "react-icons/io5";
-import {usePathname} from "next/navigation";
-
+import { usePathname } from "next/navigation";
 
 const sidebarOptions = [
   {
@@ -25,7 +24,7 @@ const sidebarOptions = [
     title: "Upload",
   },
   {
-    Icon:IoSettings,
+    Icon: IoSettings,
     slug: "/settings",
     title: "Settings",
   },
@@ -33,13 +32,13 @@ const sidebarOptions = [
     Icon: IoIosHelpCircle,
     slug: "/help",
     title: "Help",
-  }
+  },
 ];
 
 export default function LeftSidebar() {
-   const pathname= usePathname()
-    return (
-    <div className=" gap-2 flex flex-col">
+  const pathname = usePathname();
+  return (
+    <div className=" gap-2 flex flex-col ">
       {sidebarOptions.map((option) => (
         <SidebarOption
           key={option.slug}
@@ -67,12 +66,12 @@ function SidebarOption({
   return (
     <Link href={slug}>
       <button
-        className={` cursor-pointer hover:bg-gray-900 flex rounded-lg w-full px-2 py-1 gap-2 items-center text-white ${
+        className={` cursor-pointer hover:bg-gray-900 flex rounded-lg w-full p-1 sm:px-2 sm:gap-2 justify-center sm:justify-start items-center text-white ${
           active ? "bg-gray-800" : ""
         }`}
       >
         <Icon className="w-6 min-w-6 aspect-square" />
-        <p className="">{title}</p>
+        <p className="sm:block hidden">{title}</p>
       </button>
     </Link>
   );
