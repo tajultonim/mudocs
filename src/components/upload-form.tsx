@@ -99,7 +99,7 @@ export default function UploadForm({
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
-        router.push(`/file/${res.data}`);
+        router.refresh();
       } else {
         alert("Error uploading file: " + res.message);
       }
