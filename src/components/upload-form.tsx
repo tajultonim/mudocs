@@ -45,12 +45,14 @@ export default function UploadForm({
         return;
       }
       setIsloading(true);
+
       const [FileSASUrl, CoverSASUrl] = await Promise.all([
         fileactions.getSasUrl(hash, "document-files"),
         fileactions.getSasUrl(hash, "file-covers"),
       ]);
 
       const coverFile = await dataUrlToBlob(cover);
+
       const fileBlockBlobClient = new BlockBlobClient(FileSASUrl as string);
       const coverBlockBlobClient = new BlockBlobClient(CoverSASUrl as string);
       await Promise.all([
@@ -84,7 +86,6 @@ export default function UploadForm({
         cover_path: "file-covers/" + hash,
       });
       if (res.status === "success") {
-        alert("File uploaded successfully!");
         setFile(null);
         setCover("");
         setHash("");
@@ -99,8 +100,10 @@ export default function UploadForm({
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
+        alert("File uploaded successfully!");
         router.refresh();
       } else {
+        console.log("errorrr", res);
         alert("Error uploading file: " + res.message);
       }
     } catch (error) {
@@ -121,10 +124,8 @@ export default function UploadForm({
   }
 
   return (
-    <>
-      <div className="upload-page flex flex-col justify-center">
-        <div className=" font-semibold text-lg mb-2">Upload File </div>
-        <div className="w-full flex justify-center">
+      <div className="p-8 bg-gray-800 rounded shadow-md w-full flex flex-col md:flex-row gap-8 items-center">
+        <div className="flex flex-col items-center w-full sm:w-[40%] md:w-auto">
           <FileInput
             onFileDrop={(data) => {
               setFile(data.file);
@@ -133,7 +134,9 @@ export default function UploadForm({
             }}
           />
         </div>
-        <div className="flex flex-col gap-4 mt-4 mb-4">
+        {/* Form (right) */}
+        <div className="flex-1 w-full sm:w-[60%] flex flex-col gap-4">
+          <h1 className="text-2xl font-bold mb-2 text-white">Upload File</h1>
           <InputField
             title="File Name"
             type="text"
@@ -161,7 +164,6 @@ export default function UploadForm({
             ]}
             placeholder="Choose a category"
           />
-
           {category === "note" || category == "other" ? (
             <InputField
               title="Author"
@@ -187,12 +189,10 @@ export default function UploadForm({
                 };
               }}
               onChange={(e) => {
-                console.log(e);
                 setSelectedAuthors(e.value);
               }}
             />
           )}
-
           <TagsInput
             title="Tags"
             tags={tags}
@@ -201,7 +201,6 @@ export default function UploadForm({
             }}
             placeholder="Enter tag..."
           />
-
           {category === "book" ? (
             <InputField
               title="ISBN (optional)"
@@ -220,21 +219,18 @@ export default function UploadForm({
                 setDoi(e.target.value);
               }}
             />
-          ) : (
-            <></>
-          )}
+          ) : null}
           <button
             disabled={disabled || isloading}
             onClick={async () => {
               await handleFileUpload();
             }}
-            className="bg-gray-700 py-1 cursor-pointer hover:bg-gray-600 disabled:bg-gray-500 rounded-md text-white"
+            className="bg-blue-600 py-2 font-semibold cursor-pointer hover:bg-blue-500 disabled:bg-gray-500 rounded-md text-white transition-all"
           >
             {isloading ? `${percentage}% uploaded...` : "Upload"}
           </button>
         </div>
       </div>
-    </>
   );
 }
 

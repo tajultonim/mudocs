@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { createDownload } from "@/app/actions/file-action";
 import { revalidateSSGPath } from "@/app/actions/revalidation";
+import { MdFileDownload } from "react-icons/md";
 
 export default function DownloadButton({
   file_id,
   file_title,
+  className,
 }: {
   file_id: string;
   file_title?: string;
+  className?: string;
 }) {
   const [isloading, setIsloading] = useState(false);
   async function handleDownload() {
@@ -31,9 +34,10 @@ export default function DownloadButton({
     <>
       <button
         onClick={handleDownload}
-        className=" cursor-pointer text-blue-500 disabled:text-blue-200"
+        className={`cursor-pointer items-center flex bg-blue-700 rounded-sm p-1 px-2 text-white disabled:bg-gray-600 ${className}`}
         disabled={isloading}
       >
+        <MdFileDownload className="mr-1" />
         {isloading ? "Loading..." : "Download File"}
       </button>
     </>

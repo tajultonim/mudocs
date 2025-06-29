@@ -2,6 +2,7 @@
 
 import supabase from "@/lib/supabase";
 import { revalidateSSGPath } from "./revalidation";
+import { toSlug } from "@/lib/text-helper";
 
 export async function create(name: string) {
   if (!name.trim().length || !/[^a-zA-Z0-9]/.test(name)) {
@@ -17,7 +18,7 @@ export async function create(name: string) {
     .from("authors")
     .insert({
       name: nname,
-      slug: name.trim().replace(/\s+/g, "-").toLowerCase(),
+      slug: toSlug(name),
     })
     .select("id")
     .single();
@@ -26,4 +27,21 @@ export async function create(name: string) {
     return { status: "error", message: error.message };
   }
   return { status: "success", data };
+}
+
+export async function getAuthorById(authorId: string) {
+  if (!authorId) {
+    throw new Error("Author ID is required.");
+  }
+
+  const { data, error } = await supabase
+    .from("authors")
+    .select("*")
+    .eq("id", authorId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
 }

@@ -185,13 +185,6 @@ export type Database = {
             referencedRelation: "files"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "file_authors_file_id_fkey1"
-            columns: ["file_id"]
-            isOneToOne: false
-            referencedRelation: "files"
-            referencedColumns: ["id"]
-          },
         ]
       }
       file_tags: {
@@ -302,7 +295,7 @@ export type Database = {
           id: string
           ip: string
           token: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -310,7 +303,7 @@ export type Database = {
           id?: string
           ip: string
           token: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -318,7 +311,7 @@ export type Database = {
           id?: string
           ip?: string
           token?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -362,6 +355,7 @@ export type Database = {
           id: string
           image_url: string | null
           intro: string | null
+          is_verified: boolean
           password_hash: string
           roles: string[]
           upload_count: number | null
@@ -377,6 +371,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           intro?: string | null
+          is_verified?: boolean
           password_hash: string
           roles: string[]
           upload_count?: number | null
@@ -392,6 +387,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           intro?: string | null
+          is_verified?: boolean
           password_hash?: string
           roles?: string[]
           upload_count?: number | null
@@ -420,6 +416,14 @@ export type Database = {
           user_id: string
         }
         Returns: string
+      }
+      get_author_with_files_details: {
+        Args: { author_input_id: string }
+        Returns: Json
+      }
+      get_tag_with_files_and_authors: {
+        Args: { tag_input_id: string }
+        Returns: Json
       }
       increase_download_count: {
         Args: { file_id: string }

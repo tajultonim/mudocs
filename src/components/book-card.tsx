@@ -21,6 +21,7 @@ export default function BookCard({
           alt={title}
           width={300*63/94}
           height={300}
+          quality={1}
         />
         <p className=" mt-2 line-clamp-1">{title}</p>
         <p className="text-sm text-gray-400 line-clamp-1">{author}</p>

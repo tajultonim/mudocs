@@ -37,7 +37,7 @@ export default function SearchBar() {
     }
   };
   return (
-    <div className=" relative ">
+    <div className=" relative">
       <div className="flex max-w-xs items-center gap-2 bg-gray-800 rounded-lg px-2 py-1">
         <IoSearch />
         <input
@@ -52,7 +52,7 @@ export default function SearchBar() {
         />
       </div>
       <div
-        className={`absolute group ${
+        className={`absolute max-w-xs overflow-x-hidden group ${
           isFocused ? "" : "hidden"
         } top-10 bg-gray-800 `}
       >
@@ -68,7 +68,7 @@ function SearchResult({ data }: { data: SearchResultType }) {
   return (
     <Link
       href={`/file/${data.id}`}
-      className="[&>*]:border-b last:[&>*]:border-0"
+      className="[&>*]:border-b last:[&>*]:border-0 w-full"
     >
       <div className="w-full border-gray-500 p-2 ">
         <div className="flex min-w-sm w-full gap-2 items-center">

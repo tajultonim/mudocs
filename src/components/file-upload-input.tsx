@@ -45,7 +45,7 @@ export default function FileInput({
         getRootProps: (props?: DropzoneRootProps) => DropzoneRootProps;
         getInputProps: (props?: DropzoneInputProps) => DropzoneInputProps;
       }) => (
-        <div className="w-full max-w-lg min-w-md flex flex-col justify-center items-center">
+        <div className="w-full max-w-lg flex flex-col justify-center items-center">
           <div {...getRootProps()}>
             <label className="flex flex-col items-center justify-center aspect-[2/3] w-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
               <Image

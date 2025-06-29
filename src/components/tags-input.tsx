@@ -40,7 +40,7 @@ export default function TagsInput({
   return (
     <>
       <p>{title}</p>
-      <div className=" max-w-md overflow-x-scroll bg-gray-700 -mt-3 rounded-md px-2 py-1 w-full  flex">
+      <div className=" overflow-x-scroll bg-gray-700 -mt-3 rounded-md px-2 py-1 w-full  flex">
         <div className=" flex">
           {Array.from(selectedTags.values()).map((tag) => (
             <div
