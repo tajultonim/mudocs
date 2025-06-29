@@ -3,13 +3,9 @@ import TopBar from "@/components/topbar";
 import { SearchParams } from "next/dist/server/request/search-params";
 import { getFilesByRange } from "../actions/file-action";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
+export default async function Home() {
   try {
-    const params = await searchParams;
+    const params = {tab:""}//await searchParams;
     const fileQuery = await getFilesByRange();
     return (
       <>
