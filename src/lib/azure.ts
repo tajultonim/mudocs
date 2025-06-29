@@ -34,7 +34,7 @@ export async function generateDownloadSASUrl(hash: string, container: string) {
   const sasToken = generateBlobSASQueryParameters(
     {
       containerName: container,
-      blobName: hash,
+      blobName: hash + (container === "document-files" ? ".pdf" : container=="file-covers"?".png": ""),
       permissions,
       expiresOn,
       protocol: SASProtocol.HttpsAndHttp,
