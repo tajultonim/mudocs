@@ -1,6 +1,6 @@
 import BookCard from "@/components/book-card";
 import TopBar from "@/components/topbar";
-import { SearchParams } from "next/dist/server/request/search-params";
+// import { SearchParams } from "next/dist/server/request/search-params";
 import { getFilesByRange } from "../actions/file-action";
 
 export default async function Home() {
