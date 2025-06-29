@@ -16,7 +16,7 @@ export async function generateUploadSASUrl(hash: string, container: string) {
   const sasToken = generateBlobSASQueryParameters(
     {
       containerName: container,
-      blobName: hash,
+      blobName: hash + (container === "document-files" ? ".pdf" : container=="file-covers"?".png": ""),
       permissions,
       expiresOn,
       protocol: SASProtocol.HttpsAndHttp,
@@ -24,7 +24,7 @@ export async function generateUploadSASUrl(hash: string, container: string) {
     sharedKeyCredential
   ).toString();
 
-  return `https://${account}.blob.core.windows.net/${container}/${hash}?${sasToken}`;
+  return `https://${account}.blob.core.windows.net/${container}/${hash + (container === "document-files" ? ".pdf" : container=="file-covers"?".png": "")}?${sasToken}`;
 }
 
 export async function generateDownloadSASUrl(hash: string, container: string) {
@@ -42,5 +42,5 @@ export async function generateDownloadSASUrl(hash: string, container: string) {
     sharedKeyCredential
   ).toString();
 
-  return `https://${account}.blob.core.windows.net/${container}/${hash}?${sasToken}`;
+  return `https://${account}.blob.core.windows.net/${container}/${hash + (container === "document-files" ? ".pdf" : container=="file-covers"?".png": "")}?${sasToken}`;
 }
