@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 
-const PUBLIC_PATHS = [
-  "/login",
-  "/signup",
-  "/api/auth/refresh-token",
-  "/_next",
-  "/favicon.ico",
-  "/public",
-  "/api/auth/logout",
-  "/api/auth/verify-email",
-  "/verify-email"
+const PRIVATE_PATHS = [
+  "/upload",
 ];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+  if (!PRIVATE_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
   const redirectUrl = new URL(req.nextUrl);
   const host = req.headers.get("host");
+  
   if (host) {
     redirectUrl.host = host;
   }

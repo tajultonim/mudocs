@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { createDownload } from "@/app/actions/file-action";
 import { revalidateSSGPath } from "@/app/actions/revalidation";
-import { MdFileDownload } from "react-icons/md";
+import {Button} from "@/components/ui/button";
+import { Download, Loader2Icon } from "lucide-react";
 
 export default function DownloadButton({
   file_id,
@@ -32,14 +33,15 @@ export default function DownloadButton({
   }
   return (
     <>
-      <button
+      <Button
         onClick={handleDownload}
-        className={`cursor-pointer items-center flex bg-blue-700 rounded-sm p-1 px-2 text-white disabled:bg-gray-600 ${className}`}
+        variant={"default"}
+        className={className}
         disabled={isloading}
       >
-        <MdFileDownload className="mr-1" />
-        {isloading ? "Loading..." : "Download File"}
-      </button>
+        {isloading?<Loader2Icon className="animate-spin mr-1"/>:<Download className="mr-1" />}
+        {isloading ? "Loading..." : "Download"}
+      </Button>
     </>
   );
 }

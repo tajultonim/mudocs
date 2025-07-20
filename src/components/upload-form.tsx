@@ -9,10 +9,19 @@ import * as fileactions from "../app/actions/file-action";
 import { BlockBlobClient } from "@azure/storage-blob";
 import { revalidateSSGPath } from "@/app/actions/revalidation";
 import { useRouter } from "next/navigation";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 const FileInput = dynamic(() => import("./file-upload-input"), {
   ssr: false,
-  loading: () => <p>Loading...</p>,
+  loading: () => (
+    <Skeleton className=" w-[256px] h-[384px] border-2 border-gray-300 border-dashed rounded-lg flex justify-center items-center">
+      <p className="mb-2 font-semibold text-sm text-gray-500 dark:text-gray-400">
+        Loading...
+      </p>
+    </Skeleton>
+  ),
 });
 
 export default function UploadForm({
@@ -124,113 +133,112 @@ export default function UploadForm({
   }
 
   return (
-      <div className="p-8 bg-gray-800 rounded shadow-md w-full flex flex-col md:flex-row gap-8 items-center">
-        <div className="flex flex-col items-center w-full sm:w-[40%] md:w-auto">
-          <FileInput
-            onFileDrop={(data) => {
-              setFile(data.file);
-              setCover(data.cover);
-              setHash(data.hash);
-            }}
-          />
-        </div>
-        {/* Form (right) */}
-        <div className="flex-1 w-full sm:w-[60%] flex flex-col gap-4">
-          <h1 className="text-2xl font-bold mb-2 text-white">Upload File</h1>
-          <InputField
-            title="File Name"
-            type="text"
-            placeholder="Enter file name"
-            onChange={(e) => {
-              setFileName(e.target.value);
-            }}
-          />
-          <InputField
-            title="Description"
-            type="text"
-            placeholder="Enter description"
-            onChange={(e) => {
-              setDescription(e.target.value);
-            }}
-          />
-          <SelectInput
-            title="Category"
-            onChange={(e) => setCategory(e.target.value)}
-            options={[
-              { name: "Book", value: "book" },
-              { name: "Paper", value: "paper" },
-              { name: "Note", value: "note" },
-              { name: "Other", value: "other" },
-            ]}
-            placeholder="Choose a category"
-          />
-          {category === "note" || category == "other" ? (
-            <InputField
-              title="Author"
-              type="text"
-              placeholder="self"
-              initvalue="self"
-              onChange={() => {
-                setSelectedAuthors(["self"]);
-              }}
-              disabled
-            />
-          ) : (
-            <TagsInput
-              title="Authors (maintain order)"
-              tags={authors}
-              allowNewTag
-              placeholder="Enter author name..."
-              onNewTag={async (name: string) => {
-                const res = await authoractions.create(name);
-                return {
-                  status: res?.status || "error",
-                  data: res?.data,
-                };
-              }}
-              onChange={(e) => {
-                setSelectedAuthors(e.value);
-              }}
-            />
-          )}
-          <TagsInput
-            title="Tags"
-            tags={tags}
-            onChange={(e) => {
-              setSelectedTags(e.value);
-            }}
-            placeholder="Enter tag..."
-          />
-          {category === "book" ? (
-            <InputField
-              title="ISBN (optional)"
-              type="text"
-              placeholder="Enter ISBN"
-              onChange={(e) => {
-                setIsbn(e.target.value);
-              }}
-            />
-          ) : category === "paper" ? (
-            <InputField
-              title="DOI (optional)"
-              type="text"
-              placeholder="Enter DOI"
-              onChange={(e) => {
-                setDoi(e.target.value);
-              }}
-            />
-          ) : null}
-          <button
-            disabled={disabled || isloading}
-            onClick={async () => {
-              await handleFileUpload();
-            }}
-            className="bg-blue-600 py-2 font-semibold cursor-pointer hover:bg-blue-500 disabled:bg-gray-500 rounded-md text-white transition-all"
-          >
-            {isloading ? `${percentage}% uploaded...` : "Upload"}
-          </button>
-        </div>
+    <div className="p-8 py-2 rounded flex flex-col md:flex-row gap-2 sm:gap-8 items-center">
+      <div className="flex flex-col items-center w-full sm:w-[40%] md:w-auto">
+        <FileInput
+          onFileDrop={(data) => {
+            setFile(data.file);
+            setCover(data.cover);
+            setHash(data.hash);
+          }}
+        />
       </div>
+      {/* Form (right) */}
+      <div className="flex-1 w-full sm:w-[60%] flex flex-col gap-4">
+        <h1 className="text-2xl font-bold mb-2 text-white">Upload File</h1>
+        <InputField
+          title="File Name"
+          type="text"
+          placeholder="Enter file name"
+          onChange={(e) => {
+            setFileName(e.target.value);
+          }}
+        />
+        <InputField
+          title="Description"
+          type="text"
+          placeholder="Enter description"
+          onChange={(e) => {
+            setDescription(e.target.value);
+          }}
+        />
+        <SelectInput
+          title="Category"
+          onChange={(e) => setCategory(e.target.value)}
+          options={[
+            { name: "Book", value: "book" },
+            { name: "Paper", value: "paper" },
+            { name: "Note", value: "note" },
+            { name: "Other", value: "other" },
+          ]}
+          placeholder="Choose a category"
+        />
+        {category === "note" || category == "other" ? (
+          <InputField
+            title="Author"
+            type="text"
+            placeholder="self"
+            initvalue="self"
+            onChange={() => {
+              setSelectedAuthors(["self"]);
+            }}
+            disabled
+          />
+        ) : (
+          <TagsInput
+            title="Authors (maintain order)"
+            tags={authors}
+            allowNewTag
+            placeholder="Enter author name..."
+            onNewTag={async (name: string) => {
+              const res = await authoractions.create(name);
+              return {
+                status: res?.status || "error",
+                data: res?.data,
+              };
+            }}
+            onChange={(e) => {
+              setSelectedAuthors(e.value);
+            }}
+          />
+        )}
+        <TagsInput
+          title="Tags"
+          tags={tags}
+          onChange={(e) => {
+            setSelectedTags(e.value);
+          }}
+          placeholder="Enter tag..."
+        />
+        {category === "book" ? (
+          <InputField
+            title="ISBN (optional)"
+            type="text"
+            placeholder="Enter ISBN"
+            onChange={(e) => {
+              setIsbn(e.target.value);
+            }}
+          />
+        ) : category === "paper" ? (
+          <InputField
+            title="DOI (optional)"
+            type="text"
+            placeholder="Enter DOI"
+            onChange={(e) => {
+              setDoi(e.target.value);
+            }}
+          />
+        ) : null}
+        <Button
+          disabled={disabled || isloading}
+          onClick={async () => {
+            await handleFileUpload();
+          }}
+        >
+          {isloading ? `${percentage}% uploaded...` : "Upload"}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -249,7 +257,7 @@ function SelectInput({
     <div className="">
       <p>{title}</p>
       <select
-        className="bg-gray-700 rounded-md px-2 py-1 w-full"
+        className="rounded-md border px-2 py-1 w-full"
         onChange={onChange}
         defaultValue={""}
       >
@@ -284,8 +292,8 @@ function InputField({
   return (
     <div className="">
       <p>{title}</p>
-      <input
-        className="bg-gray-700 rounded-md px-2 py-1 w-full"
+      <Input
+        className=""
         type={type}
         placeholder={placeholder}
         defaultValue={initvalue || ""}

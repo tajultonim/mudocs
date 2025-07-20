@@ -1,8 +1,8 @@
-import DownloadButton from "@/components/download-button";
 import InfoBar from "@/components/info-bar";
 import supabase from "@/lib/supabase";
 import Image from "next/image";
 import Link from "next/link";
+import ButtonSet from "./buttonset";
 
 export default async function FilePage({
   params,
@@ -30,19 +30,17 @@ export default async function FilePage({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="p-8 bg-gray-800 rounded shadow-md w-full flex flex-col md:flex-row gap-8 items-center">
+      <div className="p-8 py-2 rounded w-full flex flex-col md:flex-row gap-8 items-center">
         <Image
           src={`https://mudocsstorage.blob.core.windows.net/${fileData.data?.cover_path}`}
           alt={fileData.data?.title || "Book Cover"}
-          width={200}
-          height={280}
+          width={250}
+          height={350}
           quality={1}
-          className="rounded shadow-md"
+          className="rounded"
         />
         <div className="flex-1 w-full">
-          <h1 className="text-2xl font-bold mb-4 text-white">
-            {fileData.data?.title}
-          </h1>
+          <h1 className="text-2xl font-bold mb-4">{fileData.data?.title}</h1>
           <InfoBar
             label="Description"
             value={fileData.data?.description || "-"}
@@ -55,26 +53,23 @@ export default async function FilePage({
             //     .join(", ") || "-"
             // }
             value={
-              fileData.data?.tags
-                .map((tag, index) => (
-                  <span key={tag.file_tag.id}>
-                    <Link
-                      href={"/tag/" + tag.file_tag.id}
-                      className=" text-blue-500"
-                    >
-                      {tag.file_tag.name}
-                    </Link>
-                    <span
-                      className={
-                        index === fileData.data?.tags.length - 1
-                          ? "hidden"
-                          : ""
-                      }
-                    >
-                      {", "}
-                    </span>
+              fileData.data?.tags.map((tag, index) => (
+                <span key={tag.file_tag.id}>
+                  <Link
+                    href={"/tag/" + tag.file_tag.id}
+                    className=" text-blue-500"
+                  >
+                    {tag.file_tag.name}
+                  </Link>
+                  <span
+                    className={
+                      index === fileData.data?.tags.length - 1 ? "hidden" : ""
+                    }
+                  >
+                    {", "}
                   </span>
-                )) || "-"
+                </span>
+              )) || "-"
             }
           />
           <InfoBar
@@ -83,7 +78,7 @@ export default async function FilePage({
               fileData.data?.authors
                 .sort((a, b) => a.order - b.order)
                 .map((author, index) => (
-                  <span  key={author.file_author.id}>
+                  <span key={author.file_author.id}>
                     <Link
                       href={"/author/" + author.file_author.id}
                       className=" text-blue-500"
@@ -130,11 +125,13 @@ export default async function FilePage({
             label="Download Count"
             value={fileData.data?.download_count || 0}
           />
-          <DownloadButton
-            file_id={fileData.data?.id || ""}
-            file_title={fileData.data?.title}
-            className=" mt-4"
-          />
+          <div className="mt-4">
+            <ButtonSet
+              id={fileData.data?.id || ""}
+              title={fileData.data?.title || ""}
+              uploader_id={fileData.data?.uploader?.id || ""}
+            />
+          </div>
         </div>
       </div>
     </div>

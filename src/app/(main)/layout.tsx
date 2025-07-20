@@ -1,6 +1,7 @@
+import { AppSidebar } from "@/components/app-sidebar";
 import "./../globals.css";
 import Header from "@/components/header";
-import LeftSidebar from "@/components/left-sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function RootLayout({
   children,
@@ -9,15 +10,13 @@ export default function RootLayout({
 }>) {
   return (
     <>
-      <Header />
-      <div className="grid lg:grid-cols-7 grid-cols-5 px-2 gap-6 lg:px-20">
-        {/* Sidebar: hidden on mobile, visible on lg+ */}
-        <div className="col-span-1 hidden sm:block">
-          <LeftSidebar />
-        </div>
-        <main className="lg:col-span-5 md:col-span-3 sm:col-span-4 col-span-5 pt-6">{children}</main>
-        <div className="col-span-1 hidden md:block">Sidebar</div>
-      </div>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <Header />
+          <main className="px-2">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
     </>
   );
 }

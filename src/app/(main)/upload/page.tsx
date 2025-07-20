@@ -18,7 +18,7 @@ export default async function UploadPage() {
   }
 
   return (
-    <div className="w-full flex justify-center">
+    <div className=" max-w-3xl">
       <UploadForm tags={tags.data} authors={authors.data} />
     </div>
   );

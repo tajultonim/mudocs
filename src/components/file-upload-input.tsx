@@ -51,8 +51,8 @@ export default function FileInput({
               <Image
                 src={coverUrl || "/images/loading.gif"}
                 alt="preview"
-                width={200}
-                height={300}
+                width={250}
+                height={350}
                 className={`w-full ${coverUrl ? "" : "hidden"}`}
               />
               <div

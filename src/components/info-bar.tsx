@@ -7,10 +7,10 @@ interface InfoBarProps {
 }
 
 const InfoBar: React.FC<InfoBarProps> = ({ label, value, className = "" }) => (
-  <div className={`flex items-center gap-1 ${className}`}>
-    <span className=" text-gray-300 whitespace-nowrap">{label}:</span>
-    <span className="text-gray-400 break-all">{value}</span>
-  </div>
+  <p className={className}>
+    <span className=" text-gray-700 whitespace-nowrap">{label}:</span>
+    <span className="text-gray-500 break-all ml-2">{value}</span>
+  </p>
 );
 
 export default InfoBar;

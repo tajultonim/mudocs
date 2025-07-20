@@ -1,5 +1,4 @@
 import BookCard from "@/components/book-card";
-import TopBar from "@/components/topbar";
 // import { SearchParams } from "next/dist/server/request/search-params";
 import { getFilesByRange } from "../actions/file-action";
 
@@ -9,7 +8,7 @@ export default async function Home() {
     const fileQuery = await getFilesByRange();
     return (
       <>
-        <TopBar activeTag={(params.tab as string) || ""} />
+        {/* <TopBar activeTag={(params.tab as string) || ""} /> */}
         <div className=" grid lg:grid-cols-6 grid-cols-3 gap-4">
           {fileQuery
             ?.filter((book) => (params.tab ? book.type == params.tab : true))
