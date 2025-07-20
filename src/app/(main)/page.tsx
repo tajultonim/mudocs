@@ -9,7 +9,7 @@ export default async function Home() {
     return (
       <>
         {/* <TopBar activeTag={(params.tab as string) || ""} /> */}
-        <div className=" grid lg:grid-cols-6 grid-cols-3 gap-4">
+        <div className=" grid lg:grid-cols-6 grid-cols-3 gap-2 sm:gap-4">
           {fileQuery
             ?.filter((book) => (params.tab ? book.type == params.tab : true))
             .map((book) => (
