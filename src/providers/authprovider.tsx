@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     updateData();
-  }, [updateData]);
+  });
 
   return (
     <AuthContext.Provider

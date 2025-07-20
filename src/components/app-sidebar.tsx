@@ -75,7 +75,7 @@ const data = {
       items: [
         {
           title: "All",
-          slug: "#",
+          slug: "/",
         },
         {
           title: "Books",
