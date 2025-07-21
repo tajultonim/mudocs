@@ -1,3 +1,4 @@
+import SearchBar from "./searchbar";
 import { SidebarTrigger } from "./ui/sidebar";
 import Link from "next/link";
 
@@ -13,6 +14,8 @@ export default function Header() {
             <span className="text-blue-500 ">μ</span>Docs
           </Link>
         </div>
+
+        <SearchBar/>
 
         <div>
           <SidebarTrigger />

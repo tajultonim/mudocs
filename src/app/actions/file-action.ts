@@ -5,14 +5,17 @@ import supabase from "@/lib/supabase";
 import { cookies } from "next/headers";
 import { validateUser } from "./auth-action";
 
-export async function getSasUrl(hash: string, container: string) {
+export async function getSasUrl(r_path:string) {
+  const container = r_path.split("/")[0];
+  const hash = r_path.split("/")[1].split(".")[0];
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
   const vres = await validateUser(accessToken as string);
   if (vres.status !== "success") {
     throw new Error("Access denied.");
   }
-
+// 28, 35, 36, e0, e7
+//28, 35, 36, e0
   if (!hash || !container) {
     throw new Error("Missing required parameters: hash or container.");
   }
@@ -24,7 +27,7 @@ export async function getSasUrl(hash: string, container: string) {
   if (efile.data) {
     throw new Error("File already exists in the database.");
   }
-  return generateUploadSASUrl(hash, container);
+  return generateUploadSASUrl(r_path);
 }
 
 export async function create({
@@ -109,7 +112,7 @@ export async function createDownload(file_id: string, user_id: string) {
   if (res.error || !res.data) {
     return { status: "error", message: res.error?.message };
   }
-  const downloadURL = await generateDownloadSASUrl(res.data, "document-files");
+  const downloadURL = await generateDownloadSASUrl(res.data);
 
   return { status: "success", data: downloadURL };
 }
@@ -231,7 +234,7 @@ export async function getFilesByUserId(
 
 export async function getFilesByRange(
   from: number = 0,
-  to: number = 36,
+  to: number = 35,
   orderBy: string = "download_count",
   ascending: boolean = false
 ) {

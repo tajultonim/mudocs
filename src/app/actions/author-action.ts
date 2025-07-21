@@ -20,7 +20,7 @@ export async function create(name: string) {
       name: nname,
       slug: toSlug(name),
     })
-    .select("id")
+    .select("id,name")
     .single();
   await revalidateSSGPath("/upload");
   if (error) {

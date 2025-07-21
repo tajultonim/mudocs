@@ -43,7 +43,6 @@ export default function UploadForm({
   const [isbn, setIsbn] = useState("");
   const [isloading, setIsloading] = useState(false);
   const [percentage, setPercentage] = useState(0);
-  const router = useRouter();
 
   const disabled =
     !file || !fileName || !category || isloading || !selectedAuthors.length;
@@ -56,8 +55,8 @@ export default function UploadForm({
       setIsloading(true);
 
       const [FileSASUrl, CoverSASUrl] = await Promise.all([
-        fileactions.getSasUrl(hash, "document-files"),
-        fileactions.getSasUrl(hash, "file-covers"),
+        fileactions.getSasUrl(`document-files/${hash}.pdf`),
+        fileactions.getSasUrl(`file-covers/${hash}.png`),
       ]);
 
       const coverFile = await dataUrlToBlob(cover);
@@ -82,7 +81,7 @@ export default function UploadForm({
 
       const res = await fileactions.create({
         title: fileName,
-        file_path: "document-files/" + hash,
+        file_path: "document-files/" + hash+".pdf",
         sha256_hash: hash,
         mime_type: file.type,
         size_bytes: file.size,
@@ -92,7 +91,7 @@ export default function UploadForm({
         description: description,
         isbn: isbn,
         doi: doi,
-        cover_path: "file-covers/" + hash,
+        cover_path: "file-covers/" + hash+".png",
       });
       if (res.status === "success") {
         setFile(null);
@@ -110,7 +109,7 @@ export default function UploadForm({
           revalidateSSGPath("/"),
         ]);
         alert("File uploaded successfully!");
-        router.refresh();
+        cleanStates();
       } else {
         console.log("errorrr", res);
         alert("Error uploading file: " + res.message);
@@ -130,6 +129,19 @@ export default function UploadForm({
     } finally {
       setIsloading(false);
     }
+  }
+
+  function cleanStates(){
+    setFile(null);
+    setCover("");
+    setHash("");
+    setFileName("");
+    setDescription("");
+    setCategory("");
+    setSelectedAuthors([]);
+    setSelectedTags([]);
+    setDoi("");
+    setIsbn("");
   }
 
   return (
@@ -189,7 +201,7 @@ export default function UploadForm({
             title="Authors (maintain order)"
             tags={authors}
             allowNewTag
-            placeholder="Enter author name..."
+            isOrdered
             onNewTag={async (name: string) => {
               const res = await authoractions.create(name);
               return {
@@ -208,7 +220,6 @@ export default function UploadForm({
           onChange={(e) => {
             setSelectedTags(e.value);
           }}
-          placeholder="Enter tag..."
         />
         {category === "book" ? (
           <InputField
@@ -257,7 +268,7 @@ function SelectInput({
     <div className="">
       <p>{title}</p>
       <select
-        className="rounded-md border px-2 py-1 w-full"
+        className="rounded-md leading-8 border px-2 py-1 w-full"
         onChange={onChange}
         defaultValue={""}
       >

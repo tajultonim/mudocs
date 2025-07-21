@@ -4,7 +4,8 @@ import { searchWithQuery } from "@/app/actions/search-action";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { IoSearch } from "react-icons/io5";
+import { Input } from "./ui/input";
+import { Search } from "lucide-react";
 
 interface SearchResultType {
   id: string;
@@ -38,14 +39,14 @@ export default function SearchBar() {
   };
   return (
     <div className=" relative">
-      <div className="flex max-w-xs items-center gap-2 bg-gray-800 rounded-lg px-2 py-1">
-        <IoSearch />
-        <input
+      <div className="flex border mx-6 max-w-xs sm:max-w-lg items-center gap-2 rounded-lg pl-2">
+        <Search />
+        <Input
           value={query}
           enterKeyHint="next"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className=" outline-0"
+          className=" outline-0 border-0 border-l shadow-none rounded-lg rounded-l-none "
           placeholder="Search..."
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
@@ -54,7 +55,7 @@ export default function SearchBar() {
       <div
         className={`absolute max-w-xs overflow-x-hidden group ${
           isFocused ? "" : "hidden"
-        } top-10 bg-gray-800 `}
+        } top-10 bg-white border border-t-0 p-1 rounded-b-lg shadow-lg  `}
       >
         {searchresults?.map((res) => (
           <SearchResult key={res.id} data={res} />
@@ -71,7 +72,7 @@ function SearchResult({ data }: { data: SearchResultType }) {
       className="[&>*]:border-b last:[&>*]:border-0 w-full"
     >
       <div className="w-full border-gray-500 p-2 ">
-        <div className="flex min-w-sm w-full gap-2 items-center">
+        <div className="flex min-w-sm sm:min-w-xl w-full gap-2 items-center">
           <div className=" ">
             <Image
               alt={data.title}
