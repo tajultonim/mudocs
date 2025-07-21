@@ -96,7 +96,7 @@ export default function TagsInput({
   return (
     <>
       <p>{title}</p>
-      <div className=" border -mt-4 rounded-md px-2 py-1 leading-8">
+      <div className=" border -mt-4 rounded-md px-1 py-1 leading-8">
         {selectedTags.map((tag, index) => (
           <TagLabel
             key={index}
