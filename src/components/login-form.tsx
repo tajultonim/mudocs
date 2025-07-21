@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { getDeviceInfo } from "@/lib/helper";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/providers/authprovider";
 
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ export function LoginForm() {
   const { login } = useAuth();
 
   const router = useRouter();
+  const pathaname = usePathname();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -70,7 +71,7 @@ export function LoginForm() {
     else {
       setError("");
       // alert("Login successful!\n" + JSON.stringify(res, null, 2));
-      router.push("/");
+      if(pathaname.includes("/login")) router.push("/");
     }
   };
   return (
@@ -101,6 +102,7 @@ export function LoginForm() {
             <Input
               name="password"
               type="password"
+              placeholder="********"
               defaultValue={form.password}
               onChange={handleChange}
               required

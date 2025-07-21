@@ -33,11 +33,13 @@ export default function ButtonSet({
           </Button>
         </LoginPopup>
       )}
-      {user?.id == uploader_id && (
+      {user?.id == uploader_id || user?.roles.includes("admin") ? (
         <>
           <EditButton id={id} />
           <DeleteButton />
         </>
+      ) : (
+        <></>
       )}
     </div>
   );

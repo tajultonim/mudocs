@@ -3,6 +3,7 @@ import { verifyJWT } from "@/lib/jwt";
 
 const PRIVATE_PATHS = [
   "/upload",
+  "/api/auth/me"
 ];
 
 export async function middleware(req: NextRequest) {

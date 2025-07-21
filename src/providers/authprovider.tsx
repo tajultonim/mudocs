@@ -10,6 +10,17 @@ import {
 } from "react";
 import { login as loginaction } from "@/app/actions/auth-action";
 
+export type User = {
+  id: string;
+  name: string | null;
+  username: string;
+  email: string;
+  avatar: string | null;
+  isLoggedIn: boolean;
+  roles: string[];
+  is_verified?: boolean;
+};
+
 type AuthContextType = {
   user: User | null;
   loading: boolean;
@@ -27,12 +38,7 @@ type AuthContextType = {
         user?: undefined;
       }
     | {
-        user: {
-          id: string;
-          username: string;
-          email: string;
-          roles: string[];
-        };
+        user: User;
         error?: undefined;
       }
   >;
@@ -47,14 +53,6 @@ export const useAuth = (): AuthContextType => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  isLoggedIn: boolean;
 };
 
 const CACHE_KEY = "user_profile";
@@ -73,9 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       return {
         id: data.id || "",
-        name: data.name || data.username || "User",
+        name: data.name || "",
+        username: data.username || "",
         email: data.email || "",
         avatar: data.avatar || "",
+        roles: data.roles || [],
         isLoggedIn: !data.error,
       };
     } catch {
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (!cached) return null;
-      const { user, ts } = JSON.parse(cached);
+      const { user, ts }: { user: User; ts: number } = JSON.parse(cached);
       if (Date.now() - ts > CACHE_DURATION && user.isLoggedIn) {
         localStorage.removeItem(CACHE_KEY);
         return null;
@@ -98,11 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function setCachedUser(user: User) {
+  function setCachedUser(user: User): void {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ user, ts: Date.now() }));
   }
 
-  function logout() {
+  function logout(): void {
     localStorage.removeItem(CACHE_KEY);
     setUser(null);
     fetch("/api/auth/logout", { method: "GET", credentials: "include" })
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  function updateData() {
+  function updateData(): void {
     setLoading(true);
     const cachedUser = getCachedUser();
     if (!cachedUser) {

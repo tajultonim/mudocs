@@ -12,6 +12,7 @@ import {
 import { getCookie, setCookie } from "@/lib/cookie";
 import { sendVerificationMail } from "./mail-action";
 import { cookies } from "next/headers";
+import { User } from "@/providers/authprovider";
 
 export async function createSession({
   user,
@@ -53,7 +54,9 @@ export async function createSession({
   return { session: sessionData?.[0], token };
 }
 
-export async function login(formData: FormData) {
+export async function login(
+  formData: FormData
+): Promise<{ user: User } | { error: string }> {
   const usernameOrEmail = formData.get("usernameOrEmail")?.toString();
   const password = formData.get("password")?.toString();
   const deviceInfo = JSON.parse(formData.get("deviceInfo")?.toString() || "{}");
@@ -107,6 +110,10 @@ export async function login(formData: FormData) {
       username: user.username,
       email: user.email,
       roles: user.roles,
+      name: user.full_name,
+      is_verified: user.is_verified,
+      isLoggedIn: true,
+      avatar: user.image_url,
     },
   };
 }
