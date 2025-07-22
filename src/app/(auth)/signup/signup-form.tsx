@@ -82,12 +82,13 @@ export function SignupForm() {
     formData.append("password", form.password);
     formData.append("deviceInfo", JSON.stringify(deviceInfo));
     const res = await signup(formData);
+ 
     setLoading(false);
     if (res.error) setError(res.error);
     else {
       setError("");
       setSuccess("Signup successful!");
-      router.push("/login");
+      router.push("/");
     }
   };
 

@@ -16,10 +16,12 @@ export function LoginPopup({
   children,
   title,
   description,
+  isLoading = false,
 }: {
   children: ReactNode;
   title: string;
   description: string;
+  isLoading?: boolean;
 }) {
   return (
     <Dialog>
@@ -32,7 +34,9 @@ export function LoginPopup({
         <LoginForm />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isLoading}>
+              {isLoading ? "Loading..." : "Cancel"}
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

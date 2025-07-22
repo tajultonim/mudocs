@@ -13,6 +13,11 @@ import { getCookie, setCookie } from "@/lib/cookie";
 import { sendVerificationMail } from "./mail-action";
 import { cookies } from "next/headers";
 import { User } from "@/providers/authprovider";
+import {
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from "@/lib/auth-helper";
 
 export async function createSession({
   user,
@@ -119,19 +124,19 @@ export async function login(
 }
 
 export async function signup(formData: FormData) {
-  const username = formData.get("username")?.toString();
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
+  const username = formData.get("username")?.toString() || "";
+  const email = formData.get("email")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
   const deviceInfo = JSON.parse(formData.get("deviceInfo")?.toString() || "{}");
   // Validation
-  if (!username || username.length < 3) {
+  if (validateUsername(username)) {
     return { error: "Username must be at least 3 characters." };
   }
-  if (!email || !/^\S+@ru\.ac\.bd$/.test(email)) {
+  if (validateEmail(email)) {
     return { error: "Email must be a valid @ru.ac.bd address." };
   }
-  if (!password || password.length < 6) {
-    return { error: "Password must be at least 6 characters." };
+  if (validatePassword(password)) {
+    return { error: "Password must be at least 8 characters." };
   }
 
   // Hash the password
@@ -227,7 +232,7 @@ export async function verifyAccountByToken(
   const payload = await verifyJWT(token);
   const decoded = decodeJWT(token);
   if (!payload || !payload.email || payload.type !== "verification") {
-    if (!decoded || !decoded.emaik || decoded.type !== "verification") {
+    if (!decoded || !decoded.email || decoded.type !== "verification") {
       return {
         status: "error",
         error: "Invalid verification token.",
@@ -300,8 +305,7 @@ export async function verifyAccountByToken(
 
   return { status: "success", data: payload };
 }
-
-async function generateAndSetLoginTokenCookiesFromData(user: {
+export async function generateAndSetLoginTokenCookiesFromData(user: {
   id: string;
   username: string;
   email: string;

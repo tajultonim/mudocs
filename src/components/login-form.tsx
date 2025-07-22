@@ -54,7 +54,6 @@ export function LoginForm() {
     setLoading(true);
     setError("");
     if (!form.usernameOrEmail || !form.password) {
-
       setError("Please fill in all fields.");
       setLoading(false);
       return;
@@ -71,7 +70,7 @@ export function LoginForm() {
     else {
       setError("");
       // alert("Login successful!\n" + JSON.stringify(res, null, 2));
-      if(pathaname.includes("/login")) router.push("/");
+      if (pathaname.includes("/login")) router.push("/");
     }
   };
   return (
@@ -93,7 +92,7 @@ export function LoginForm() {
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
               <Link
-                href="#"
+                href="/forget-password"
                 className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
               >
                 Forgot your password?

@@ -55,24 +55,44 @@ export async function createVerificationToken(
     .sign(JWT_SECRET);
 }
 
+export async function createPasswordResetToken(
+  email: string,
+  expiresInSeconds = 60 * 60 * 24
+): Promise<string> {
+  const payload: JWTPayload = {
+    email: email,
+    type: "password_reset",
+  };
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(Math.floor(Date.now() / 1000) + expiresInSeconds)
+    .sign(JWT_SECRET);
+}
+
 export async function verifyJWT<T extends JWTPayload = JWTPayload>(
   token: string
 ): Promise<T | null> {
   try {
-    const { payload }= await jwtVerify<T>(token, JWT_SECRET);
+    const { payload } = await jwtVerify<T>(token, JWT_SECRET);
     return payload;
   } catch {
     return null;
   }
 }
 
-export function decodeJWT<T extends JWTPayload = JWTPayload>(token: string): T | null {
+export function decodeJWT<T extends JWTPayload = JWTPayload>(
+  token: string
+): T | null {
   try {
     const [, payload] = token.split(".");
     if (!payload) return null;
     const decoded = JSON.parse(
       new TextDecoder().decode(
-        Uint8Array.from(atob(payload.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0))
+        Uint8Array.from(
+          atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+          (c) => c.charCodeAt(0)
+        )
       )
     );
     return decoded as T;

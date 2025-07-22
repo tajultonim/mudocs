@@ -1,16 +1,16 @@
 "use client";
 
-import { Database } from "../lib/database";
+import { Database } from "@/lib/database";
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import TagsInput from "./tags-input";
-import * as authoractions from "../app/actions/author-action";
-import * as fileactions from "../app/actions/file-action";
+import TagsInput from "@/components/tags-input";
+import * as authoractions from "@/app/actions/author-action";
+import * as fileactions from "@/app/actions/file-action";
 import { BlockBlobClient } from "@azure/storage-blob";
 import { revalidateSSGPath } from "@/app/actions/revalidation";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const FileInput = dynamic(() => import("./file-upload-input"), {
   ssr: false,

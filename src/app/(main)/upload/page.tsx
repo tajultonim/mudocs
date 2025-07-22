@@ -1,4 +1,4 @@
-import UploadForm from "@/components/upload-form";
+import UploadForm from "./upload-form";
 import supabase from "@/lib/supabase";
 import { Metadata } from "next";
 

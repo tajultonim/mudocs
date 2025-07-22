@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import ResendEmailButton from "./resend-email-button";
+import ResendEmailButton from "../../../components/resend-email-button";
 
 export default function VerificationErrorComonent({
   message,

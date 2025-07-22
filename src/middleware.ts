@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 
-const PRIVATE_PATHS = [
-  "/upload",
-  "/api/auth/me"
-];
+const PRIVATE_PATHS = ["/upload", "/api/auth/me"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -14,7 +11,7 @@ export async function middleware(req: NextRequest) {
 
   const redirectUrl = new URL(req.nextUrl);
   const host = req.headers.get("host");
-  
+
   if (host) {
     redirectUrl.host = host;
   }
@@ -23,6 +20,9 @@ export async function middleware(req: NextRequest) {
   const refreshToken = req.cookies.get("refresh_token")?.value;
 
   if (!refreshToken) {
+    if (pathname == "/api/auth/me") {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

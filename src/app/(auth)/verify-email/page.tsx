@@ -1,6 +1,6 @@
 import ResendEmailButton from "@/components/resend-email-button";
-import VerificationErrorComonent from "@/components/verification-error";
-import VerificationSuccessfulComponent from "@/components/verification-successful";
+import VerificationErrorComonent from "@/app/(auth)/verify-email/verification-error";
+import VerificationSuccessfulComponent from "@/app/(auth)/verify-email/verification-successful";
 import { AccessTokenPayload, verifyJWT } from "@/lib/jwt";
 
 import { SearchParams } from "next/dist/server/request/search-params";
