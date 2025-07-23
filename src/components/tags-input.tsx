@@ -23,7 +23,6 @@ export default function TagsInput({
   tags,
   onChange,
   onNewTag,
-  allowNewTag,
   isOrdered,
 }: {
   title: string;
@@ -121,7 +120,7 @@ export default function TagsInput({
               handleNewTag(name);
             }
           }}
-          allowNewTag={allowNewTag}
+          allowNewTag={onNewTag !== undefined}
         />
       </div>
     </>
@@ -158,7 +157,7 @@ function ComboBox({
         <Command>
           <CommandInput
             onValueChange={(search) => setCurrentValue(search)}
-            placeholder="Search framework..."
+            placeholder="Search..."
             className="h-9"
           />
           <CommandList>

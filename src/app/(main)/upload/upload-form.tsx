@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import TagsInput from "@/components/tags-input";
 import * as authoractions from "@/app/actions/author-action";
 import * as fileactions from "@/app/actions/file-action";
+import * as tagactions from "@/app/actions/tag-action";
 import { BlockBlobClient } from "@azure/storage-blob";
 import { revalidateSSGPath } from "@/app/actions/revalidation";
 import { Input } from "@/components/ui/input";
@@ -80,7 +81,7 @@ export default function UploadForm({
 
       const res = await fileactions.create({
         title: fileName,
-        file_path: "document-files/" + hash+".pdf",
+        file_path: "document-files/" + hash + ".pdf",
         sha256_hash: hash,
         mime_type: file.type,
         size_bytes: file.size,
@@ -90,7 +91,7 @@ export default function UploadForm({
         description: description,
         isbn: isbn,
         doi: doi,
-        cover_path: "file-covers/" + hash+".png",
+        cover_path: "file-covers/" + hash + ".png",
       });
       if (res.status === "success") {
         setFile(null);
@@ -130,7 +131,7 @@ export default function UploadForm({
     }
   }
 
-  function cleanStates(){
+  function cleanStates() {
     setFile(null);
     setCover("");
     setHash("");
@@ -216,6 +217,14 @@ export default function UploadForm({
         <TagsInput
           title="Tags"
           tags={tags}
+          allowNewTag
+          onNewTag={async (name: string) => {
+            const res = await tagactions.create(name);
+            return {
+              status: res?.status || "error",
+              data: res?.data,
+            };
+          }}
           onChange={(e) => {
             setSelectedTags(e.value);
           }}
