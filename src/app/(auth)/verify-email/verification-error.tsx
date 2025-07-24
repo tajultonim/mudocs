@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import ResendEmailButton from "../../../components/resend-email-button";
+import ResendEmailButton from "./resend-email-button";
+import { AlertCard } from "@/components/alerts";
 
 export default function VerificationErrorComonent({
   message,
@@ -28,27 +29,33 @@ export default function VerificationErrorComonent({
     }
   });
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-      <div className="p-8 bg-gray-800 rounded shadow-md w-full max-w-md flex flex-col gap-4 items-center">
-        <h1 className="text-2xl font-bold text-red-500 mb-2">{message}</h1>
-        <p className="text-gray-300 text-center">
-          {children}
-          {!showResendButton && (
-            <>
-              <br /> You will be redirected to the{" "}
-              <Link
-                href="/login"
-                className="text-blue-500 hover:underline"
-                replace
-              >
-                login page
-              </Link>{" "}
-              in {count}...
-            </>
-          )}
-        </p>
-        {showResendButton && <ResendEmailButton />}
+    <>
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-md">
+          <AlertCard type="error" title="Token Error">
+            <p>{message}</p>
+            <p >
+              {children}
+              {!showResendButton && (
+                <>
+                  <br/> You will be redirected to the{" "}
+                  <Link
+                    href="/login"
+                    className="text-blue-500 hover:text-blue-400"
+                    replace
+                  >
+                    login page
+                  </Link>{" "}
+                  in {count}...
+                </>
+              )}
+            </p>
+            <div className=" flex justify-center mt-2">
+              {showResendButton && <ResendEmailButton />}
+            </div>
+          </AlertCard>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

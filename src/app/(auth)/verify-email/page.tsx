@@ -1,6 +1,7 @@
-import ResendEmailButton from "@/components/resend-email-button";
+import ResendEmailButton from "@/app/(auth)/verify-email/resend-email-button";
 import VerificationErrorComonent from "@/app/(auth)/verify-email/verification-error";
 import VerificationSuccessfulComponent from "@/app/(auth)/verify-email/verification-successful";
+import { AlertCard } from "@/components/alerts";
 import { AccessTokenPayload, verifyJWT } from "@/lib/jwt";
 
 import { SearchParams } from "next/dist/server/request/search-params";
@@ -25,7 +26,11 @@ export default async function VerifyEmailPage({
   const payload = (await verifyJWT(access_token || "")) as AccessTokenPayload;
 
   if (!payload && !token) {
-    return redirect(`${baseUrl}/api/auth/logout`);
+    return redirect(`${baseUrl}/login`);
+  }
+
+  if (payload && payload.is_verified) {
+    return redirect(`${baseUrl}/`);
   }
 
   if (token) {
@@ -46,9 +51,7 @@ export default async function VerifyEmailPage({
             showResendButton={!!payload?.email}
           >
             The verification token for{" "}
-            <span className="font-semibold text-white">
-              {body?.email || payload.email}
-            </span>{" "}
+            <span className=" font-bold">{body?.email || payload.email}</span>{" "}
             is expired.
           </VerificationErrorComonent>
         );
@@ -59,9 +62,7 @@ export default async function VerifyEmailPage({
             showResendButton={!!payload?.email}
           >
             The verification token for{" "}
-            <span className="font-semibold text-white">
-              {body?.email || payload?.email}
-            </span>{" "}
+            <span className=" font-bold">{body?.email || payload?.email}</span>{" "}
             is invalid.
           </VerificationErrorComonent>
         );
@@ -70,18 +71,21 @@ export default async function VerifyEmailPage({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-      <div className="p-8 bg-gray-800 rounded shadow-md w-full max-w-md flex flex-col gap-4 items-center">
-        <h1 className="text-2xl font-bold text-white mb-2">
-          Verify your email
-        </h1>
-        <p className="text-gray-300 text-center">
-          We have sent a verification email to{" "}
-          <span className="font-semibold text-white">{payload.email}</span>.
-          <br />
-          Please check your inbox and click the verification link.
-        </p>
-        {payload.email && <ResendEmailButton />}
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-md">
+        <AlertCard type="info" title="Verify your email">
+          <p>
+            We have sent a verification email to{" "}
+            <span className="font-bold">{payload.email}</span>.
+            <br />
+            Please check your inbox and click the verification link.
+          </p>
+          {payload.email && (
+            <div className=" flex justify-center mt-2">
+              <ResendEmailButton />
+            </div>
+          )}
+        </AlertCard>
       </div>
     </div>
   );

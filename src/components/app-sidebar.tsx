@@ -1,29 +1,27 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Activity,
   BadgeInfo,
-  BookMarked,
-  FileText,
   GalleryVerticalEnd,
   GraduationCap,
-  LibraryBig,
   Settings2,
   Upload,
-} from "lucide-react"
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { SchemeSwitcher } from "@/components/scheme-switcher"
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { NavUser } from "@/components/nav-user";
+import { SchemeSwitcher } from "@/components/scheme-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { exploreData } from "@/app/sidebar-data";
 
 // This is sample data.
 const data = {
@@ -42,76 +40,7 @@ const data = {
       name: "MuAcademy",
       logo: GraduationCap,
       plan: "Academic",
-    }
-  ],
-  navMain: [{
-      title: "Bookmarks",
-      slug: "#",
-      icon: BookMarked,
-      isActive: true,
-      items: [
-        {
-          title: "All",
-          slug: "#",
-        },
-        {
-          title: "Books",
-          slug: "#",
-        },
-        {
-          title: "Papers",
-          slug: "#",
-        },{
-          title: "Notes",
-          slug: "#",
-        },
-      ],
     },
-    {
-      title: "E Library",
-      slug: "#",
-      icon: FileText,
-      isActive: true,
-      items: [
-        {
-          title: "All",
-          slug: "/",
-        },
-        {
-          title: "Books",
-          slug: "#",
-        },
-        {
-          title: "Papers",
-          slug: "#",
-        },{
-          title: "Notes",
-          slug: "#",
-        },
-      ],
-    },
-    {
-      title: "Offline",
-      slug: "#",
-      icon: LibraryBig,
-      items: [
-        {
-          title: "All",
-          slug: "#",
-        },
-        {
-          title: "Books",
-          slug: "#",
-        },
-        {
-          title: "Papers",
-          slug: "#",
-        },{
-          title: "Notes",
-          slug: "#",
-        },
-      ],
-    }
   ],
   projects: [
     {
@@ -136,7 +65,7 @@ const data = {
         {
           title: "Preferences",
           slug: "#",
-        }
+        },
       ],
     },
     {
@@ -151,11 +80,13 @@ const data = {
         {
           title: "Developers",
           slug: "#",
-        }
+        },
       ],
     },
   ],
-}
+};
+
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -164,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SchemeSwitcher schemes={data.schemes} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={exploreData} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
@@ -172,5 +103,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

@@ -20,7 +20,7 @@ interface SearchResultType {
   type: string;
 }
 
-export default function SearchBar() {
+export default function SearchInput() {
   const [query, setQuery] = useState<string>("");
   const [searchresults, setSearchresults] = useState<SearchResultType[] | null>(
     null

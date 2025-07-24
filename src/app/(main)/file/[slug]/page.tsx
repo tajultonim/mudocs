@@ -47,11 +47,6 @@ export default async function FilePage({
           />
           <InfoBar
             label="Tags"
-            // value={
-            //   fileData.data?.file_tags
-            //     .map((tag) => tag.tags?.name ?? "")
-            //     .join(", ") || "-"
-            // }
             value={
               fileData.data?.tags.map((tag, index) => (
                 <span key={tag.file_tag.id}>

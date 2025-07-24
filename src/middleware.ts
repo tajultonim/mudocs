@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 
-const PRIVATE_PATHS = ["/upload", "/api/auth/me"];
+const PRIVATE_PATHS = ["/upload", "/api/auth/me", "/login", "/signup"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -23,7 +23,11 @@ export async function middleware(req: NextRequest) {
     if (pathname == "/api/auth/me") {
       return NextResponse.next();
     }
-    return NextResponse.redirect(new URL("/login", req.url));
+    if (pathname == "/login" || pathname == "/signup") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    } else {
+      return NextResponse.next();
+    }
   }
 
   if (!accessToken) {
@@ -45,6 +49,10 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname !== "/verify-email"
   ) {
     return NextResponse.redirect(new URL("/verify-email", req.url));
+  }
+
+  if (pathname == "/login" || pathname == "/signup") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();

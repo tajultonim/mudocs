@@ -1,4 +1,4 @@
-import SearchBar from "./searchbar";
+import SearchBar from "./searchinput";
 import { SidebarTrigger } from "./ui/sidebar";
 import Link from "next/link";
 

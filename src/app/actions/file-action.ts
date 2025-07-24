@@ -5,7 +5,7 @@ import supabase from "@/lib/supabase";
 import { cookies } from "next/headers";
 import { validateUser } from "./auth-action";
 
-export async function getSasUrl(r_path:string) {
+export async function getSasUrl(r_path: string) {
   const container = r_path.split("/")[0];
   const hash = r_path.split("/")[1].split(".")[0];
   const cookieStore = await cookies();
@@ -14,8 +14,8 @@ export async function getSasUrl(r_path:string) {
   if (vres.status !== "success") {
     throw new Error("Access denied.");
   }
-// 28, 35, 36, e0, e7
-//28, 35, 36, e0
+  // 28, 35, 36, e0, e7
+  //28, 35, 36, e0
   if (!hash || !container) {
     throw new Error("Missing required parameters: hash or container.");
   }
@@ -230,6 +230,71 @@ export async function getFilesByUserId(
     throw new Error(error.message);
   }
   return data;
+}
+
+export async function getFilesByCategoryTypeByRange({
+  from = 0,
+  to = 17,
+  category,
+  type,
+  orderBy = "download_count",
+  ascending = false,
+}: {
+  from?: number;
+  to?: number;
+  category?: string;
+  type?: string;
+  orderBy?: string;
+  ascending?: boolean;
+}) {
+  let res = null;
+  if (category == "bookmarks" || category == "s-lib") {
+    return { data: [], count: 0 };
+  }
+  if (type) {
+    res = await supabase
+      .from("files")
+      .select(
+        `
+      *,
+      file_authors!file_authors_file_id_fkey (
+        authors!file_authors_author_id_fkey (
+          id,
+          name,
+          slug
+        ),
+        order
+      )
+    `,
+        { count: "exact" }
+      )
+      .eq("type", type)
+      .order(orderBy, { ascending })
+      .range(from, to);
+  } else {
+    res = await supabase
+      .from("files")
+      .select(
+        `
+      *,
+      file_authors!file_authors_file_id_fkey (
+        authors!file_authors_author_id_fkey (
+          id,
+          name,
+          slug
+        ),
+        order
+      )
+    `,
+        { count: "exact" }
+      )
+      .order(orderBy, { ascending })
+      .range(from, to);
+  }
+  if (res.error) {
+    return { data: [], count: 0 };
+  }
+  return { data: res.data, count: res.count || 0 };
 }
 
 export async function getFilesByRange(

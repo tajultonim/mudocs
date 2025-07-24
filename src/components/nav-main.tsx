@@ -17,6 +17,9 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
+
+
 
 export function NavMain({
   items,
@@ -68,9 +71,9 @@ export function CollapsibaleSidebarMenuItem({
             {options?.map((subItem) => (              
               <SidebarMenuSubItem key={subItem.title}>
                 <SidebarMenuSubButton asChild>
-                  <a href={subItem.slug}>
+                  <Link href={subItem.slug}>
                     <span>{subItem.title}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
             ))}
