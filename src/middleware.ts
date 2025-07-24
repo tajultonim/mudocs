@@ -23,7 +23,7 @@ export async function middleware(req: NextRequest) {
     if (pathname == "/api/auth/me") {
       return NextResponse.next();
     }
-    if (pathname != "/login" || pathname != "/signup") {
+    if (pathname != "/login" && pathname != "/signup") {
       return NextResponse.redirect(new URL("/login", req.url));
     } else {
       return NextResponse.next();
