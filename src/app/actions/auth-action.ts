@@ -129,13 +129,13 @@ export async function signup(formData: FormData) {
   const password = formData.get("password")?.toString() || "";
   const deviceInfo = JSON.parse(formData.get("deviceInfo")?.toString() || "{}");
   // Validation
-  if (validateUsername(username)) {
+  if (!validateUsername(username)) {
     return { error: "Username must be at least 3 characters." };
   }
-  if (validateEmail(email)) {
+  if (!validateEmail(email)) {
     return { error: "Email must be a valid @ru.ac.bd address." };
   }
-  if (validatePassword(password)) {
+  if (!validatePassword(password)) {
     return { error: "Password must be at least 8 characters." };
   }
 
