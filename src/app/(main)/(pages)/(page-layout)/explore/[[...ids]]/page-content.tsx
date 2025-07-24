@@ -49,7 +49,7 @@ export function PageContent({
 }) {
   const [query, setQuery] = useState(initialQuery);
   const searchParams = useSearchParams();
-  const pageNumber = parseInt(searchParams.get("p") || "1");
+  const pageNumber=parseInt(searchParams.get("p") || "1")
   const numberOfPages = Math.ceil(query.count / 18);
 
   useEffect(() => {
@@ -146,6 +146,7 @@ export function PageContent({
           />
         ))}
       </div>
+
       {numberOfPages > 1 && (
         <PaginationComponent
           pageNumber={pageNumber}

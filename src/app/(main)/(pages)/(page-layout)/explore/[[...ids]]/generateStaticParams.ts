@@ -35,7 +35,11 @@ export const categorys = [
   ),
 ];
 
-export function generateStaticParams() {
-  return pathIDArray;
+export async function generateStaticParams() {
+  try {
+    return pathIDArray;
+  } catch (error) {
+    console.log(error);
+    return [{ ids: [] }];
+  }
 }
-
