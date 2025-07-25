@@ -37,7 +37,7 @@ export async function generateMetadata({
 export default async function Pages({
   params,
 }: {
-  params: Promise<{ ids?: string[] }>;
+  params: Promise<{ ids?: string[] }> | { ids?: string[] };
 }) {
   try {
     const [collectionId, categoryId] = (await params).ids || [];
