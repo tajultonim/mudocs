@@ -5,15 +5,42 @@ import { collections, categorys } from "./generateStaticParams";
 import { PageContent } from "./page-content";
 import { Suspense } from "react";
 
-export const dynamic = "error";
+export const dynamic = "force-static";
+
+const collectionName = {
+  bookmarks: "Bookmarks",
+  "s-lib": "Seminar Library",
+  "e-lib": "E Library",
+  collection: "All",
+};
+
+const categoryName = {
+  book: "Books",
+  paper: "Papers",
+  note: "Notes",
+  other: "Documents",
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ ids?: string[] }>;
+}) {
+  const [collectionId, categoryId] = (await params).ids || [];
+  return {
+    title: `${collectionName[collectionId as "bookmarks"] || ""} ${
+      categoryName[categoryId as "book"] || ""
+    } – μDocs `,
+  };
+}
 
 export default async function Pages({
   params,
 }: {
-  params: { ids?: string[] };
+  params: Promise<{ ids?: string[] }>;
 }) {
   try {
-    const [collectionId, categoryId] = params.ids || [];
+    const [collectionId, categoryId] = (await params).ids || [];
     if (
       (collectionId && !collections.includes(collectionId)) ||
       (categoryId && !categorys.includes(categoryId))

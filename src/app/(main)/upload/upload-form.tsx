@@ -94,22 +94,12 @@ export default function UploadForm({
         cover_path: "file-covers/" + hash + ".png",
       });
       if (res.status === "success") {
-        setFile(null);
-        setCover("");
-        setHash("");
-        setFileName("");
-        setDescription("");
-        setCategory("");
-        setSelectedAuthors([]);
-        setSelectedTags([]);
-        setDoi("");
-        setIsbn("");
         await Promise.all([
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
         alert("File uploaded successfully!");
-        cleanStates();
+        window.location.reload();
       } else {
         console.log("errorrr", res);
         alert("Error uploading file: " + res.message);
@@ -131,19 +121,6 @@ export default function UploadForm({
     }
   }
 
-  function cleanStates() {
-    setFile(null);
-    setCover("");
-    setHash("");
-    setFileName("");
-    setDescription("");
-    setCategory("");
-    setSelectedAuthors([]);
-    setSelectedTags([]);
-    setDoi("");
-    setIsbn("");
-  }
-
   return (
     <div className="p-8 py-2 rounded flex flex-col md:flex-row gap-2 sm:gap-8 items-center">
       <div className="flex flex-col items-center w-full sm:w-[40%] md:w-auto">
@@ -162,6 +139,7 @@ export default function UploadForm({
           title="File Name"
           type="text"
           placeholder="Enter file name"
+          initvalue={fileName}
           onChange={(e) => {
             setFileName(e.target.value);
           }}
@@ -315,7 +293,7 @@ function InputField({
         className=""
         type={type}
         placeholder={placeholder}
-        defaultValue={initvalue || ""}
+        value={initvalue || ""}
         onChange={onChange}
         disabled={disabled}
       />

@@ -21,6 +21,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+// import { categoryName, collectionName } from "./page";
+
+type Query = Awaited<ReturnType<typeof getFilesByCategoryTypeByRange>>;
 
 const collectionName = {
   bookmarks: "Bookmarks",
@@ -36,8 +39,6 @@ const categoryName = {
   other: "Documents",
 };
 
-type Query = Awaited<ReturnType<typeof getFilesByCategoryTypeByRange>>;
-
 export function PageContent({
   initialQuery,
   categoryId,
@@ -49,7 +50,7 @@ export function PageContent({
 }) {
   const [query, setQuery] = useState(initialQuery);
   const searchParams = useSearchParams();
-  const pageNumber=parseInt(searchParams.get("p") || "1")
+  const pageNumber = parseInt(searchParams.get("p") || "1");
   const numberOfPages = Math.ceil(query.count / 18);
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export function PageContent({
         setQuery(initialQuery);
         return;
       }
+      setQuery({ count: 0, data: [] });
       const fileQuery = await getFilesByCategoryTypeByRange({
         category: collectionId,
         type: categoryId,

@@ -4,6 +4,27 @@ import Image from "next/image";
 import Link from "next/link";
 import ButtonSet from "./buttonset";
 
+export const dynamic = "force-static";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const fileData = await supabase
+    .from("files")
+    .select("title, description")
+    .eq("id", slug)
+    .single();
+  return {
+    title: fileData.data?.title || "File",
+    description:
+      fileData.data?.description ||
+      `Download file ${fileData.data?.title || ""} from μDocs`,
+  };
+}
+
 export default async function FilePage({
   params,
 }: {
