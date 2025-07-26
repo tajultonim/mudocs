@@ -3,7 +3,7 @@ import supabase from "@/lib/supabase";
 import Image from "next/image";
 import Link from "next/link";
 import ButtonSet from "./buttonset";
-import Head from "next/head";
+import { Metadata } from "next";
 
 export const dynamic = "force-static";
 
@@ -11,11 +11,11 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<Metadata> {
   const { slug } = await params;
   const fileData = await supabase
     .from("files")
-    .select("title, description")
+    .select("title, description, cover_path")
     .eq("id", slug)
     .single();
   return {
@@ -23,6 +23,34 @@ export async function generateMetadata({
     description:
       fileData.data?.description ||
       `Download file ${fileData.data?.title || ""} from μDocs`,
+    openGraph: {
+      title: fileData.data?.title || "File",
+      description:
+        fileData.data?.description ||
+        `Download file ${fileData.data?.title || ""} from μDocs`,
+      url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${slug}`,
+      images: [
+        {
+          url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`,
+          width: 1200,
+          height: 850,
+          alt: fileData.data?.title || "File",
+        },
+      ],
+      siteName: "μDocs",
+      type: "book",
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fileData.data?.title || "File",
+      description:
+        fileData.data?.description ||
+        `Download file ${fileData.data?.title || ""} from μDocs`,
+      images: [
+        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`,
+      ],
+    },
   };
 }
 
@@ -55,48 +83,46 @@ export default async function FilePage({
 
   return (
     <>
-      <Head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type":
-                fileType === "book"
-                  ? "Book"
-                  : fileType == "paper"
-                  ? "ScholarlyArticle"
-                  : fileType == "note"
-                  ? "CreativeWork"
-                  : "MediaObject",
-              name: data?.title,
-              author: data?.authors.map((author) => ({
-                "@type": "Person",
-                name: author.file_author.name,
-              })),
-              bookFormat: data?.file_path
-                ? "https://schema.org/EBook"
-                : undefined,
-              ...(data?.publisher?.name && {
-                "@type": "Organization",
-                name: data?.publisher?.name,
-              }),
-              datePublished: "2003-10-01",
-              isbn: (data?.extra_meta as { isbn?: string })?.isbn,
-              inLanguage: data?.language,
-              description: data?.description,
-              ...(fileType == "note" && { educationalLevel: "University" }),
-              image: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${data?.cover_path}`,
-              url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
-              keywords: data?.tags.map((tag) => tag.file_tag.name),
-              potentialAction: {
-                "@type": "ReadAction",
-                target: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
-              },
-            }).replace(/</g, "\\u003c"),
-          }}
-        />
-      </Head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type":
+              fileType === "book"
+                ? "Book"
+                : fileType == "paper"
+                ? "ScholarlyArticle"
+                : fileType == "note"
+                ? "CreativeWork"
+                : "MediaObject",
+            name: data?.title,
+            author: data?.authors.map((author) => ({
+              "@type": "Person",
+              name: author.file_author.name,
+            })),
+            bookFormat: data?.file_path
+              ? "https://schema.org/EBook"
+              : undefined,
+            ...(data?.publisher?.name && {
+              "@type": "Organization",
+              name: data?.publisher?.name,
+            }),
+            datePublished: "2003-10-01",
+            isbn: (data?.extra_meta as { isbn?: string })?.isbn,
+            inLanguage: data?.language,
+            description: data?.description,
+            ...(fileType == "note" && { educationalLevel: "University" }),
+            image: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${data?.cover_path}`,
+            url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
+            keywords: data?.tags.map((tag) => tag.file_tag.name),
+            potentialAction: {
+              "@type": "ReadAction",
+              target: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
+            },
+          }).replace(/</g, "\\u003c"),
+        }}
+      />
       <div className="flex flex-col gap-2">
         <div className="p-8 py-2 rounded w-full flex flex-col md:flex-row gap-8 items-center">
           <Image

@@ -125,10 +125,7 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  other: {
-    "application/json": "const ok={no:'fck'}",
-  },
+  }
 };
 
 export default function RootLayout({

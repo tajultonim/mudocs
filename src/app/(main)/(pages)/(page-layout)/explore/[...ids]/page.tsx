@@ -4,7 +4,7 @@ import { exploreData } from "@/app/sidebar-data";
 
 import { PageContent } from "./page-content";
 import { Suspense } from "react";
-import Head from "next/head";
+import { Metadata } from "next";
 
 export const dynamic = "force-static";
 
@@ -61,13 +61,51 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ ids?: string[] }>;
-}) {
+}): Promise<Metadata> {
   const { ids } = await params;
   const [collectionId, categoryId] = ids || [];
   return {
     title: `${collectionName[collectionId as "bookmarks"] || ""} ${
       categoryName[categoryId as "book"] || ""
     }`,
+    openGraph: {
+      title: `${collectionName[collectionId as "bookmarks"] || ""} ${
+        categoryName[categoryId as "book"] || ""
+      }`,
+      url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}/${categoryId}`,
+      description:
+        "An e-library for storing and accessing academic papers and books, including resources from the Seminar Library of the Department of Physics, University of Rajshahi.",
+      siteName: "μDocs",
+      images: [
+        {
+          url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-1200x630.png`,
+          width: 1200,
+          height: 630,
+          alt: "μDocs – Explore Science Books & Papers",
+        },
+        {
+          url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-2500x1313.png`,
+          width: 2500,
+          height: 1313,
+          alt: "μDocs – Explore Science Books & Papers",
+        },
+      ],
+      locale: "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${collectionName[collectionId as "bookmarks"] || ""} ${
+        categoryName[categoryId as "book"] || ""
+      }`,
+      description:
+        "Discover physics books and seminar papers from Rajshahi University’s Department of Physics.",
+      images: [
+        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-1200x630.png`,
+        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-2500x1313.png`,
+      ],
+      creator: "@tajultonim",
+    },
   };
 }
 
@@ -92,41 +130,39 @@ export default async function Pages({
     return (
       <>
         {!collectionId && (
-          <Head>
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "BreadcrumbList",
-                  itemListElement: [
-                    {
-                      "@type": "ListItem",
-                      position: 1,
-                      name: "Home",
-                      item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/`,
-                    },
-                    {
-                      "@type": "ListItem",
-                      position: 2,
-                      name: collectionName[collectionId as "bookmarks"] || "",
-                      item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}`,
-                    },
-                    ...(categoryId
-                      ? [
-                          {
-                            "@type": "ListItem",
-                            position: 3,
-                            name: categoryName[categoryId as "book"] || "",
-                            item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}/${categoryId}`,
-                          },
-                        ]
-                      : []),
-                  ],
-                }).replace(/</g, "\\u003c"),
-              }}
-            />
-          </Head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  {
+                    "@type": "ListItem",
+                    position: 1,
+                    name: "Home",
+                    item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/`,
+                  },
+                  {
+                    "@type": "ListItem",
+                    position: 2,
+                    name: collectionName[collectionId as "bookmarks"] || "",
+                    item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}`,
+                  },
+                  ...(categoryId
+                    ? [
+                        {
+                          "@type": "ListItem",
+                          position: 3,
+                          name: categoryName[categoryId as "book"] || "",
+                          item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}/${categoryId}`,
+                        },
+                      ]
+                    : []),
+                ],
+              }).replace(/</g, "\\u003c"),
+            }}
+          />
         )}
         <Suspense>
           <PageContent
