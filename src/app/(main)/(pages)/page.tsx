@@ -26,7 +26,7 @@ export default function MainPage() {
           }}
         />
       </Head>
-      <Pages params={{ ids: [] }} />
+      <Pages params={Promise.resolve({ ids: [] })} />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { getFilesByCategoryTypeByRange } from "@/app/actions/file-action";
-import { collections, categorys } from "./generateStaticParams";
+import { exploreData } from "@/app/sidebar-data";
 // import { notFound } from "next/navigation";
 
 import { PageContent } from "./page-content";
@@ -7,6 +7,21 @@ import { Suspense } from "react";
 import Head from "next/head";
 
 export const dynamic = "force-static";
+
+const pathIDArray = [
+  ...new Set(
+    exploreData
+      .map((item) => {
+        return [...item.items.map((subitem) => subitem.slug)];
+      })
+      .flat()
+      .map((s) => s.replace("/explore/", "").split("/"))
+  ),
+].map((items) => {
+  return {
+    ids: items,
+  };
+});
 
 const collectionName = {
   bookmarks: "Bookmarks",
@@ -22,26 +37,47 @@ const categoryName = {
   other: "Documents",
 };
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ ids?: string[] }>;
-}) {
-  const [collectionId, categoryId] = (await params).ids || [];
-  return {
-    title: `${collectionName[collectionId as "bookmarks"] || ""} ${
-      categoryName[categoryId as "book"] || ""
-    }`,
-  };
-}
+const collections = [
+  ...new Set(
+    pathIDArray
+      .filter((item) => item.ids[0])
+      .map((item) => {
+        return item.ids[0];
+      })
+  ),
+];
+
+const categorys = [
+  ...new Set(
+    pathIDArray
+      .filter((item) => item.ids[1])
+      .map((item) => {
+        return item.ids[1];
+      })
+  ),
+];
+
+// export async function generateMetadata({
+//   params,
+// }: {
+//   params: { ids?: string[] };
+// }) {
+//   const [collectionId, categoryId] = params.ids || [];
+//   return {
+//     title: `${collectionName[collectionId as "bookmarks"] || ""} ${
+//       categoryName[categoryId as "book"] || ""
+//     }`,
+//   };
+// }
 
 export default async function Pages({
   params,
 }: {
-  params: Promise<{ ids?: string[] }> | { ids?: string[] };
+  params: Promise<{ ids?: string[] }>;
 }) {
   try {
-    const [collectionId, categoryId] = (await params).ids || [];
+    const { ids } = await params;
+    const [collectionId, categoryId] = ids || [];
     if (
       (collectionId && !collections.includes(collectionId)) ||
       (categoryId && !categorys.includes(categoryId))
@@ -103,5 +139,14 @@ export default async function Pages({
   } catch (error) {
     console.log(error);
     return <div className="text-red-500">Failed to load files</div>;
+  }
+}
+
+export async function generateStaticParams() {
+  try {
+    return pathIDArray;
+  } catch (error) {
+    console.log(error);
+    return [{ ids: [] }];
   }
 }
