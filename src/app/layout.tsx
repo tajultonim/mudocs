@@ -18,9 +18,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "μDocs – Science PDF Library and Seminar Archive of RU PHY",
+  category: "Education",
+  title: {
+    default: "μDocs – Science PDF Library and Seminar Archive of RU PHY",
+    template: "%s – μDocs",
+  },
   description:
-    "Explore and access science books, papers, and academic resources from μDocs contributors and University of Rajshahi, Dept. of Physics seminar library.",
+    "Explore and access science books, papers, and academic resources from MuDocs contributors and University of Rajshahi, Dept. of Physics seminar library.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
@@ -51,7 +55,8 @@ export const metadata: Metadata = {
 
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "μDocs – The Science e-Library and Seminar Archive of RU PHY",
+    title: "μDocs – Science e-Library and Seminar Archive of RU PHY",
+    countryName: "Bangladesh",
     description:
       "A curated collection of science books, papers, and academic resources from contributors and University of Rajshahi, Dept. of Physics Seminar Library.",
     url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
@@ -73,6 +78,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
+  facebook: {
+    appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "",
+  },
   twitter: {
     card: "summary_large_image",
     title: "μDocs – The Physics e-Library of RU",
@@ -89,12 +97,18 @@ export const metadata: Metadata = {
   publisher: "μDocs",
   applicationName: "μDocs",
   keywords: [
+    "MuDocs RU",
     "μDocs",
+    "mudocs",
+    "udocs",
+    "RU",
     "Science Library",
     "Physics Books",
     "Seminar Archive",
     "Rajshahi University",
     "RU PHY",
+    "Department of Physics",
+    "University of Rajshahi",
     "Academic Resources",
     "Research Papers",
   ],
@@ -111,6 +125,9 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
+  },
+  other: {
+    "application/json": "const ok={no:'fck'}",
   },
 };
 

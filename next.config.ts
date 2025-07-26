@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: { position: "bottom-right" },
+  async rewrites() {
+    return [
+      {
+        source: "/remote/:path*",
+        destination: "https://mudocsstorage.blob.core.windows.net/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

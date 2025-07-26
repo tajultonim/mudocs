@@ -1,8 +1,15 @@
 import { getFilesByUserId } from "@/app/actions/file-action";
 import { getUrserById } from "@/app/actions/user-action";
-import BookCard from "@/components/book-card";
-import InfoBar from "@/components/info-bar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import supabase from "@/lib/supabase";
+import { CardGrid } from "../../(pages)/(page-layout)/explore/[...ids]/page-content";
 
 export default async function UserProfilePage({
   params,
@@ -17,39 +24,32 @@ export default async function UserProfilePage({
     getFilesByUserId(slug),
   ]);
 
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="p-8 bg-gray-800 rounded shadow-md w-full">
-        <h1 className="text-2xl font-bold mb-4 text-white">
-          {userData.username}
-        </h1>
-        <InfoBar label="Email" value={userData.email} />
-        <InfoBar
-          label="Joined"
-          value={new Date(userData.created_at).toLocaleDateString()}
-        />
-      </div>
-      <div className="p-8 bg-gray-800 rounded shadow-md w-full ">
-        <h2 className="text-xl font-bold mb-4 text-white">User Uploads</h2>
-        <div className="grid md:grid-cols-6 grid-cols-3 gap-2">
-          {userFiles.map((file) => (
-            <BookCard
-              image={`https://mudocsstorage.blob.core.windows.net/${file.cover_path}`}
-              title={file.title}
-              slug={`/file/${file.id}`}
-              key={file.id}
-              author={
-                file.file_authors
-                  .sort((a, b) => a.order - b.order)
-                  .map((entry) => entry.authors.name)
-                  .join(", ") || "Unknown"
-              }
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+    <>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Users</BreadcrumbPage>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>
+              {userData.full_name || userData.username}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <CardGrid
+        numberOfPages={Math.ceil(userFiles.count / 17)}
+        pageNumber={1}
+        query={userFiles}
+        title={`Uploaded by ${userData.full_name || userData.username}`}
+      />
+    </>
   );
 }
 

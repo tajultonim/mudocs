@@ -8,8 +8,9 @@ export const metadata: Metadata = {
 export default async function UploadPage() {
   const authorQuery = supabase.from("authors").select("*");
   const tagsQuery = supabase.from("tags").select("*");
-  const [authors, tags] = await Promise.all([authorQuery, tagsQuery]);
-  if (authors.error || tags.error) {
+  const publisherQuery = supabase.from("publishers").select("*");
+  const [authors, tags, publishers] = await Promise.all([authorQuery, tagsQuery, publisherQuery]);
+  if (authors.error || tags.error || publishers.error) {
     console.error(
       "Error fetching authors or tags:",
       authors.error || tags.error
@@ -19,7 +20,7 @@ export default async function UploadPage() {
 
   return (
     <div className=" max-w-3xl">
-      <UploadForm tags={tags.data} authors={authors.data} />
+      <UploadForm tags={tags.data} authors={authors.data} publishers={publishers.data} />
     </div>
   );
 }

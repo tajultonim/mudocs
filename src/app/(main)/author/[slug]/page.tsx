@@ -1,7 +1,15 @@
 import { getAuthorById } from "@/app/actions/author-action";
 import { getFilesByAuthorId } from "@/app/actions/file-action";
-import BookCard from "@/components/book-card";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import supabase from "@/lib/supabase";
+import { CardGrid } from "../../(pages)/(page-layout)/explore/[...ids]/page-content";
 
 export type AuthorWithFilesDetails = {
   id: string;
@@ -32,44 +40,35 @@ export default async function AuthorPage({
 }) {
   const { slug } = await params;
   try {
-    const [author, files] = await Promise.all([
+    const [author, fileQuery] = await Promise.all([
       getAuthorById(slug),
       getFilesByAuthorId(slug),
     ]);
 
     return (
-      <div className="flex flex-col gap-2">
-        <div className="p-8 bg-gray-800 rounded shadow-md w-full">
-          <h1 className="text-2xl font-bold text-white">{author.name}</h1>
-          <p className=" text-gray-400">Author</p>
-        </div>
-        <div className="p-8 bg-gray-800 rounded shadow-md w-full ">
-          <h2 className="text-xl font-bold mb-4 text-white">
-            Books by {author.name}
-          </h2>
-          <div className="grid md:grid-cols-6 grid-cols-3 gap-2">
-            {files.length === 0 && (
-              <div className="text-gray-400 col-span-full">
-                No books found for this author.
-              </div>
-            )}
-            {files.map((file) => (
-              <BookCard
-                image={`https://mudocsstorage.blob.core.windows.net/${file.cover_path}`}
-                title={file.title}
-                slug={`/file/${file.id}`}
-                key={file.id}
-                author={
-                  (file.file_authors || [])
-                    .sort((a, b) => a.order - b.order)
-                    .map((fa) => fa.authors.name)
-                    .join(", ") || "Unknown"
-                }
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      <>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Authors</BreadcrumbPage>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{author.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <CardGrid
+          numberOfPages={Math.ceil(fileQuery.count / 17)}
+          pageNumber={1}
+          query={fileQuery}
+          title={`From ${author.name}`}
+        />
+      </>
     );
   } catch (error) {
     console.error("Error fetching author page data:", error);

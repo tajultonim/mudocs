@@ -7,11 +7,27 @@ import TagsInput from "@/components/tags-input";
 import * as authoractions from "@/app/actions/author-action";
 import * as fileactions from "@/app/actions/file-action";
 import * as tagactions from "@/app/actions/tag-action";
-import { BlockBlobClient } from "@azure/storage-blob";
+import * as publisheractions from "@/app/actions/publisher-action";
 import { revalidateSSGPath } from "@/app/actions/revalidation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { uploadFileWithManualProgress } from "./uploadwithprogress";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const FileInput = dynamic(() => import("./file-upload-input"), {
   ssr: false,
@@ -27,9 +43,11 @@ const FileInput = dynamic(() => import("./file-upload-input"), {
 export default function UploadForm({
   tags,
   authors,
+  publishers,
 }: {
   tags: Database["public"]["Tables"]["tags"]["Row"][];
   authors: Database["public"]["Tables"]["authors"]["Row"][];
+  publishers?: Database["public"]["Tables"]["publishers"]["Row"][];
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [hash, setHash] = useState<string>("");
@@ -39,10 +57,13 @@ export default function UploadForm({
   const [category, setCategory] = useState("");
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedPublisher, setSelectedPublisher] = useState<string>("");
   const [doi, setDoi] = useState("");
   const [isbn, setIsbn] = useState("");
   const [isloading, setIsloading] = useState(false);
   const [percentage, setPercentage] = useState(0);
+  const [year, setYear] = useState<string>("");
+  const [languaege, setLanguage] = useState<string>("");
 
   const disabled =
     !file || !fileName || !category || isloading || !selectedAuthors.length;
@@ -59,27 +80,26 @@ export default function UploadForm({
         fileactions.getSasUrl(`file-covers/${hash}.png`),
       ]);
 
-      const coverFile = await dataUrlToBlob(cover);
+      const coverFile = getFileFromDataURL(cover);
 
-      const fileBlockBlobClient = new BlockBlobClient(FileSASUrl as string);
-      const coverBlockBlobClient = new BlockBlobClient(CoverSASUrl as string);
-      await Promise.all([
-        fileBlockBlobClient.uploadBrowserData(file, {
-          onProgress: (progress) => {
-            const percent = (progress.loadedBytes / file.size) * 100;
-            setPercentage(percent);
-            console.log(`Upload progress: ${percent.toFixed(2)}%`);
-          },
-        }),
-        coverBlockBlobClient.uploadBrowserData(coverFile, {
-          onProgress: (progress) => {
-            const percent = (progress.loadedBytes / coverFile.size) * 100;
-            console.log(`Upload progress: ${percent.toFixed(2)}%`);
-          },
-        }),
-      ]);
-
-      const res = await fileactions.create({
+      // const fileBlockBlobClient = new BlockBlobClient(FileSASUrl as string);
+      // const coverBlockBlobClient = new BlockBlobClient(CoverSASUrl as string);
+      // await Promise.all([
+      //   fileBlockBlobClient.uploadBrowserData(file, {
+      //     onProgress: (progress) => {
+      //       const percent = (progress.loadedBytes / file.size) * 100;
+      //       setPercentage(percent);
+      //       console.log(`Upload progress: ${percent.toFixed(2)}%`);
+      //     },
+      //   }),
+      //   coverBlockBlobClient.uploadBrowserData(coverFile, {
+      //     onProgress: (progress) => {
+      //       const percent = (progress.loadedBytes / coverFile.size) * 100;
+      //       console.log(`Upload progress: ${percent.toFixed(2)}%`);
+      //     },
+      //   }),
+      // ]);
+      const res = await fileactions.createUpload({
         title: fileName,
         file_path: "document-files/" + hash + ".pdf",
         sha256_hash: hash,
@@ -91,9 +111,30 @@ export default function UploadForm({
         description: description,
         isbn: isbn,
         doi: doi,
+        publisher_id: selectedPublisher,
+        year: year,
         cover_path: "file-covers/" + hash + ".png",
+        language: languaege,
       });
+
       if (res.status === "success") {
+        await Promise.all([
+          uploadFileWithManualProgress({
+            file,
+            sasUrl: FileSASUrl as string,
+            onProgress: (percent) => {
+              setPercentage(percent);
+            },
+          }),
+          uploadFileWithManualProgress({
+            file: coverFile,
+            sasUrl: CoverSASUrl as string,
+            onProgress: (percent) => {
+              console.log(`Cover upload progress: ${percent.toFixed(2)}%`);
+            },
+          }),
+        ]);
+        await fileactions.uploadComplete(res.data || "");
         await Promise.all([
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
@@ -147,6 +188,7 @@ export default function UploadForm({
         <InputField
           title="Description"
           type="text"
+          initvalue={description}
           placeholder="Enter description"
           onChange={(e) => {
             setDescription(e.target.value);
@@ -154,15 +196,18 @@ export default function UploadForm({
         />
         <SelectInput
           title="Category"
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => {
+            setCategory(e.value);
+          }}
           options={[
-            { name: "Book", value: "book" },
-            { name: "Paper", value: "paper" },
-            { name: "Note", value: "note" },
-            { name: "Other", value: "other" },
+            { label: "Book", value: "book" },
+            { label: "Paper", value: "paper" },
+            { label: "Note", value: "note" },
+            { label: "Other", value: "other" },
           ]}
-          placeholder="Choose a category"
+          required
         />
+
         {category === "note" || category == "other" ? (
           <InputField
             title="Author"
@@ -192,6 +237,60 @@ export default function UploadForm({
             }}
           />
         )}
+        {category === "book" && (
+          <SelectInput
+            options={
+              publishers?.map((p) => ({
+                label: p.name,
+                value: p.id,
+              })) || []
+            }
+            title="Publisher"
+            onNewTag={(value) => {
+              return publisheractions.create(value).then((res) => {
+                setSelectedPublisher(res?.data?.id || "");
+                return {
+                  status: res?.status || "error",
+                  data: res?.data
+                    ? { value: res.data.id, label: res.data.name }
+                    : undefined,
+                };
+              });
+            }}
+            onChange={(e) => setSelectedPublisher(e.value)}
+          />
+        )}
+        <SelectInput
+          options={Array.from({ length: 100 }, (_, i) => ({
+            label: (new Date().getFullYear() - i).toString(),
+            value: (new Date().getFullYear() - i).toString(),
+          }))}
+          title="Year"
+          onNewTag={(value: string) => {
+            if (
+              parseInt(value) < 100 ||
+              parseInt(value) > new Date().getFullYear()
+            ) {
+              return {
+                status: "error",
+                data: { value: value, label: value },
+              };
+            }
+            return {
+              status: "success",
+              data: { value: value, label: value },
+            };
+          }}
+          onChange={(e) => setYear(e.value)}
+        />
+        <SelectInput
+          title="Language"
+          options={[
+            { label: "English", value: "en" },
+            { label: "Bengali", value: "bn" },
+          ]}
+          onChange={(e) => setLanguage(e.value)}
+        />
         <TagsInput
           title="Tags"
           tags={tags}
@@ -220,6 +319,7 @@ export default function UploadForm({
           <InputField
             title="DOI (optional)"
             type="text"
+            initvalue={doi}
             placeholder="Enter DOI"
             onChange={(e) => {
               setDoi(e.target.value);
@@ -242,32 +342,174 @@ export default function UploadForm({
 function SelectInput({
   title,
   options,
-  placeholder,
   onChange,
+  onNewTag,
+  required = false,
 }: {
   title: string;
-  options: { name: string; value: string }[];
-  placeholder: string;
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: { label: string; value: string }[];
+  required?: boolean;
+  onChange: (e: { value: string }) => void;
+  onNewTag?: (
+    label: string
+  ) =>
+    | { status: string; data?: { value: string; label: string } }
+    | Promise<{ status: string; data?: { value: string; label: string } }>;
 }) {
+  const [selectableOptions, setSelectableOptions] = useState(options);
+  const handleNewOption = async (label: string) => {
+    if (!onNewTag) {
+      return;
+    }
+    const newOptionRes = await onNewTag(label);
+    if (!newOptionRes.data || newOptionRes.status !== "success") {
+      return onChange({ value: "" });
+    }
+    setSelectableOptions((prev) => [
+      ...prev,
+      {
+        value: newOptionRes.data?.value || "",
+        label: newOptionRes.data?.label || "",
+      },
+    ]);
+    onChange({ value: newOptionRes.data.value });
+  };
   return (
-    <div className="">
+    <>
       <p>{title}</p>
-      <select
-        className="rounded-md leading-8 border px-2 py-1 w-full"
-        onChange={onChange}
-        defaultValue={""}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.name}
-          </option>
-        ))}
-      </select>
-    </div>
+      <div className="-mt-4">
+        <ComboBox
+          required={required}
+          options={selectableOptions}
+          onChange={({ value, label, isNew }) => {
+            if (!isNew) {
+              const stag = options.find((option) => option.value === value);
+              if (stag || value === "") {
+                onChange({ value: stag?.value || "" });
+              }
+            } else if (isNew && label) {
+              handleNewOption(label);
+            }
+          }}
+          allowNewTag={typeof onNewTag !== "undefined"}
+        />
+      </div>
+    </>
+  );
+}
+
+function ComboBox({
+  options,
+  onChange,
+  allowNewTag = false,
+  required = false,
+}: {
+  options: {
+    value: string;
+    label: string;
+  }[];
+  required?: boolean;
+  onChange: ({
+    value,
+    label,
+    isNew,
+  }: {
+    value?: string;
+    label?: string;
+    isNew?: boolean;
+  }) => void;
+  allowNewTag?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [currentValue, setCurrentValue] = useState<string | null>(null);
+  const [isNew, setIsNew] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-[200px] justify-between"
+        >
+          {isNew
+            ? currentValue
+            : currentValue
+            ? options.find((option) => option.value === currentValue)?.label
+            : "Select..."}
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          {allowNewTag && (
+            <CommandInput
+              onValueChange={(search) => {
+                setIsNew(false);
+                setCurrentValue(search);
+              }}
+              placeholder="Search..."
+              className="h-9"
+            />
+          )}
+          <CommandList>
+            <CommandEmpty>
+              No entry found
+              {allowNewTag && currentValue?.toLocaleLowerCase().trim() ? (
+                <>
+                  <br />
+                  <Button
+                    onClick={() => {
+                      setIsNew(true);
+                      onChange({ label: currentValue, isNew: true });
+                      setOpen(false);
+                    }}
+                    variant={"secondary"}
+                    size={"sm"}
+                    className=" py-0 mt-1 px-2"
+                  >
+                    +Add
+                  </Button>
+                </>
+              ) : (
+                <></>
+              )}
+            </CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={(v) => {
+                    if (required && v === currentValue) {
+                      return;
+                    }
+                    setCurrentValue(v === currentValue ? "" : v);
+                    setIsNew(false);
+                    onChange({
+                      value: v === currentValue ? "" : v,
+                      label: option.label,
+                      isNew: false,
+                    });
+                    setOpen(false);
+                  }}
+                >
+                  {option.label}
+                  <Check
+                    className={cn(
+                      "ml-auto",
+                      currentValue === option.value
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -301,8 +543,17 @@ function InputField({
   );
 }
 
-async function dataUrlToBlob(dataURL: string): Promise<Blob> {
-  const res = await fetch(dataURL);
-  const blob = await res.blob();
-  return blob;
+export function getFileFromDataURL(dataURL: string): File {
+  const arr = dataURL.split(",");
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : "";
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], "", { type: mime });
 }

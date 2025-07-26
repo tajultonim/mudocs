@@ -4,6 +4,7 @@ import { collections, categorys } from "./generateStaticParams";
 
 import { PageContent } from "./page-content";
 import { Suspense } from "react";
+import Head from "next/head";
 
 export const dynamic = "force-static";
 
@@ -30,7 +31,7 @@ export async function generateMetadata({
   return {
     title: `${collectionName[collectionId as "bookmarks"] || ""} ${
       categoryName[categoryId as "book"] || ""
-    } – μDocs `,
+    }`,
   };
 }
 
@@ -52,13 +53,52 @@ export default async function Pages({
       type: categoryId,
     });
     return (
-      <Suspense>
-        <PageContent
-          initialQuery={fileQuery}
-          categoryId={categoryId}
-          collectionId={collectionId}
-        />
-      </Suspense>
+      <>
+        {!collectionId && (
+          <Head>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "BreadcrumbList",
+                  itemListElement: [
+                    {
+                      "@type": "ListItem",
+                      position: 1,
+                      name: "Home",
+                      item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/`,
+                    },
+                    {
+                      "@type": "ListItem",
+                      position: 2,
+                      name: collectionName[collectionId as "bookmarks"] || "",
+                      item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}`,
+                    },
+                    ...(categoryId
+                      ? [
+                          {
+                            "@type": "ListItem",
+                            position: 3,
+                            name: categoryName[categoryId as "book"] || "",
+                            item: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}/${categoryId}`,
+                          },
+                        ]
+                      : []),
+                  ],
+                }).replace(/</g, "\\u003c"),
+              }}
+            />
+          </Head>
+        )}
+        <Suspense>
+          <PageContent
+            initialQuery={fileQuery}
+            categoryId={categoryId}
+            collectionId={collectionId}
+          />
+        </Suspense>
+      </>
     );
   } catch (error) {
     console.log(error);

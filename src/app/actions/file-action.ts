@@ -30,7 +30,21 @@ export async function getSasUrl(r_path: string) {
   return generateUploadSASUrl(r_path);
 }
 
-export async function create({
+export async function uploadComplete(id: string) {
+  if (!id) {
+    return false;
+  }
+  const { error } = await supabase
+    .from("files")
+    .update({ status: "live" })
+    .eq("id", id);
+  if (error) {
+    return false;
+  }
+  return true;
+}
+
+export async function createUpload({
   title,
   file_path,
   sha256_hash,
@@ -43,6 +57,9 @@ export async function create({
   isbn,
   doi,
   cover_path,
+  publisher_id,
+  year,
+  language = "en",
 }: {
   title: string;
   file_path: string;
@@ -56,6 +73,9 @@ export async function create({
   isbn?: string;
   doi?: string;
   cover_path?: string;
+  publisher_id?: string;
+  year?: string;
+  language?: string;
 }) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
@@ -75,7 +95,7 @@ export async function create({
     return { status: "error", message: "Missing required fields." };
   }
 
-  const { data, error } = await supabase.rpc("create_file", {
+  const { data, error } = await supabase.rpc("create_file_upload", {
     title,
     file_path,
     hash: sha256_hash,
@@ -86,8 +106,11 @@ export async function create({
     extra_meta: { isbn, doi },
     cover_path: cover_path || "",
     tag_ids: tags,
+    year: year,
+    publisher_id: publisher_id,
     author_ids: authors,
-    user_id: (vres.data.id || null) as string,
+    user_id: vres.data.id as string,
+    language: language,
   });
   if (error) {
     return { status: "error", message: error.message };
@@ -120,13 +143,13 @@ export async function createDownload(file_id: string, user_id: string) {
 export async function getFilesByTagId(
   tagId: string,
   from: number = 0,
-  to: number = 36
+  to: number = 17
 ) {
   if (!tagId) {
     throw new Error("Tag ID is required.");
   }
 
-  const { data, error } = await supabase
+  const { data, count, error } = await supabase
     .from("file_tags")
     .select(
       `
@@ -144,7 +167,8 @@ export async function getFilesByTagId(
           order
         )
       )
-    `
+    `,
+      { count: "exact" }
     )
     .eq("tag_id", tagId)
     .order("download_count", { foreignTable: "files", ascending: false })
@@ -153,19 +177,19 @@ export async function getFilesByTagId(
   if (error) {
     throw new Error(error.message);
   }
-  return data.map((f) => f.files);
+  return { data: data.map((f) => f.files), count: count || 0 };
 }
 
 export async function getFilesByAuthorId(
   authorId: string,
   from: number = 0,
-  to: number = 36
+  to: number = 17
 ) {
   if (!authorId) {
     throw new Error("Author ID is required.");
   }
 
-  const { data, error } = await supabase
+  const { data, count, error } = await supabase
     .from("file_authors")
     .select(
       `
@@ -183,7 +207,8 @@ export async function getFilesByAuthorId(
         order
       )
     )
-  `
+  `,
+      { count: "exact" }
     )
     .eq("author_id", authorId)
     .order("download_count", { foreignTable: "files", ascending: false })
@@ -192,19 +217,19 @@ export async function getFilesByAuthorId(
   if (error) {
     throw new Error(error.message);
   }
-  return data.map((f) => f.files);
+  return { data: data.map((f) => f.files) || [], count: count || 0 };
 }
 
 export async function getFilesByUserId(
   userId: string,
   from: number = 0,
-  to: number = 36
+  to: number = 17
 ) {
   if (!userId) {
     throw new Error("User ID is required.");
   }
 
-  const { data, error } = await supabase
+  const { data, count, error } = await supabase
     .from("files")
     .select(
       `
@@ -220,7 +245,8 @@ export async function getFilesByUserId(
         ),
         order
       )
-    `
+    `,
+      { count: "exact" }
     )
     .eq("uploader_id", userId)
     .order("download_count", { ascending: false })
@@ -229,7 +255,7 @@ export async function getFilesByUserId(
   if (error) {
     throw new Error(error.message);
   }
-  return data;
+  return { data: data || [], count: count || 0 };
 }
 
 export async function getFilesByCategoryTypeByRange({
@@ -256,7 +282,10 @@ export async function getFilesByCategoryTypeByRange({
       .from("files")
       .select(
         `
-      *,
+      id,
+      title,
+      cover_path,
+      download_count,
       file_authors!file_authors_file_id_fkey (
         authors!file_authors_author_id_fkey (
           id,
