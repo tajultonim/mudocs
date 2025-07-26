@@ -19,12 +19,12 @@ export async function generateMetadata({
     .eq("id", slug)
     .single();
   return {
-    title: fileData.data?.title || "File",
+    title: `${fileData.data?.title} | μDocs`,
     description:
       fileData.data?.description ||
       `Download file ${fileData.data?.title || ""} from μDocs`,
     openGraph: {
-      title: fileData.data?.title || "File",
+      title: `${fileData.data?.title} | μDocs`,
       description:
         fileData.data?.description ||
         `Download file ${fileData.data?.title || ""} from μDocs`,
@@ -41,9 +41,10 @@ export async function generateMetadata({
       type: "book",
       locale: "en_US",
     },
+
     twitter: {
       card: "summary_large_image",
-      title: fileData.data?.title || "File",
+      title: `${fileData.data?.title} | μDocs`,
       description:
         fileData.data?.description ||
         `Download file ${fileData.data?.title || ""} from μDocs`,

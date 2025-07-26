@@ -67,11 +67,11 @@ export async function generateMetadata({
   return {
     title: `${collectionName[collectionId as "bookmarks"] || ""} ${
       categoryName[categoryId as "book"] || ""
-    }`,
+    } | μDocs`,
     openGraph: {
       title: `${collectionName[collectionId as "bookmarks"] || ""} ${
         categoryName[categoryId as "book"] || ""
-      }`,
+      } | μDocs`,
       url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}/${categoryId}`,
       description:
         "An e-library for storing and accessing academic papers and books, including resources from the Seminar Library of the Department of Physics, University of Rajshahi.",
@@ -97,7 +97,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `${collectionName[collectionId as "bookmarks"] || ""} ${
         categoryName[categoryId as "book"] || ""
-      }`,
+      } | μDocs`,
       description:
         "Discover physics books and seminar papers from Rajshahi University’s Department of Physics.",
       images: [
