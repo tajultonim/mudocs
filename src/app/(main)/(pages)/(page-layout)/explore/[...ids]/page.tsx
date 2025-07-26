@@ -57,18 +57,19 @@ const categorys = [
   ),
 ];
 
-// export async function generateMetadata({
-//   params,
-// }: {
-//   params: { ids?: string[] };
-// }) {
-//   const [collectionId, categoryId] = params.ids || [];
-//   return {
-//     title: `${collectionName[collectionId as "bookmarks"] || ""} ${
-//       categoryName[categoryId as "book"] || ""
-//     }`,
-//   };
-// }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ ids?: string[] }>;
+}) {
+  const { ids } = await params;
+  const [collectionId, categoryId] = ids || [];
+  return {
+    title: `${collectionName[collectionId as "bookmarks"] || ""} ${
+      categoryName[categoryId as "book"] || ""
+    }`,
+  };
+}
 
 export default async function Pages({
   params,
