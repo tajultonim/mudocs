@@ -76,7 +76,7 @@ export default async function FilePage({
       publisher:publishers(id, name)
     `
     )
-    .eq("id", slug)
+    .eq("id", slug).is("deleted_at",null)
     .single();
   const data = fileData.data;
   const fileType = data?.type || "other";
