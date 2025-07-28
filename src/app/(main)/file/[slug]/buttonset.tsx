@@ -23,7 +23,7 @@ export default function ButtonSet({
       {user ? (
         <DownloadButton file_id={id} file_title={title} />
       ) : (
-        <LoginPopup
+       <> <LoginPopup
           title="Login Required"
           description="Please login to download files and enjoy other features"
         >
@@ -31,7 +31,7 @@ export default function ButtonSet({
             <Download className="mr-1" />
             Download
           </Button>
-        </LoginPopup>
+        </LoginPopup></>
       )}
       {user?.id == uploader_id || user?.roles.includes("admin") ? (
         <>

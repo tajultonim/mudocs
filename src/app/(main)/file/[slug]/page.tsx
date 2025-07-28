@@ -22,12 +22,12 @@ export async function generateMetadata({
     title: `${fileData.data?.title} | μDocs`,
     description:
       fileData.data?.description ||
-      `Download file ${fileData.data?.title || ""} from μDocs`,
+      `${fileData.data?.title || ""} at μDocs`,
     openGraph: {
       title: `${fileData.data?.title} | μDocs`,
       description:
         fileData.data?.description ||
-        `Download file ${fileData.data?.title || ""} from μDocs`,
+        `${fileData.data?.title || ""} at μDocs`,
       url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${slug}`,
       images: [
         {
@@ -47,7 +47,7 @@ export async function generateMetadata({
       title: `${fileData.data?.title} | μDocs`,
       description:
         fileData.data?.description ||
-        `Download file ${fileData.data?.title || ""} from μDocs`,
+        `${fileData.data?.title || ""} from μDocs`,
       images: [
         `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`,
       ],
@@ -211,10 +211,10 @@ export default async function FilePage({
                 " MB"
               }
             />
-            <InfoBar
+            {/* <InfoBar
               label="Download Count"
               value={fileData.data?.download_count || 0}
-            />
+            /> */}
             <div className="mt-4">
               <ButtonSet
                 id={fileData.data?.id || ""}

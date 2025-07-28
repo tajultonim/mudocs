@@ -74,7 +74,7 @@ export async function generateMetadata({
       } | μDocs`,
       url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/explore/${collectionId}/${categoryId}`,
       description:
-        "An e-library for storing and accessing academic papers and books, including resources from the Seminar Library of the Department of Physics, University of Rajshahi.",
+        "An e-library for academic papers and books, including resources from the Seminar Library of the Department of Physics, University of Rajshahi.",
       siteName: "μDocs",
       images: [
         {
