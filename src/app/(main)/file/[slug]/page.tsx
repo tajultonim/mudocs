@@ -229,7 +229,7 @@ export default async function FilePage({
 }
 
 export async function generateStaticParams() {
-  const res = await supabase.from("files").select("id"); // returns list of books
+  const res = await supabase.from("files").select("id").eq("deleted_at",null); // returns list of books
   const books = res.data || [];
 
   return books.map((book: { id: string }) => ({
