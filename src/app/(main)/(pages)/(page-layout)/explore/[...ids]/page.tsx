@@ -8,6 +8,10 @@ import { Metadata } from "next";
 
 export const dynamic = "force-static";
 
+export const revalidate = 60 * 60;
+
+export const dynamicParams = false;
+
 const pathIDArray = [
   ...new Set(
     exploreData
@@ -104,7 +108,17 @@ export async function generateMetadata({
         `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-1200x630.png`,
         `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-2500x1313.png`,
       ],
-      creator: "@tajultonim",
+    },
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   };
 }
@@ -129,7 +143,7 @@ export default async function Pages({
     });
     return (
       <>
-        {!collectionId && (
+        {collectionId && (
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{

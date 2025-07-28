@@ -18,16 +18,39 @@ export async function generateMetadata({
     .select("title, description, cover_path")
     .eq("id", slug)
     .single();
+
+  if (!fileData.data) {
+    return {
+      title: "404 - File Not Found",
+      description: "The requested file could not be found.",
+      openGraph: {
+        title: "404 - File Not Found",
+        description: "The requested file could not be found.",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "404 - File Not Found",
+        description: "The requested file could not be found.",
+      },
+      robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+          index: false,
+          follow: false,
+        },
+      },
+    };
+  }
+
   return {
     title: `${fileData.data?.title} | μDocs`,
     description:
-      fileData.data?.description ||
-      `${fileData.data?.title || ""} at μDocs`,
+      fileData.data?.description || `${fileData.data?.title || ""} at μDocs`,
     openGraph: {
       title: `${fileData.data?.title} | μDocs`,
       description:
-        fileData.data?.description ||
-        `${fileData.data?.title || ""} at μDocs`,
+        fileData.data?.description || `${fileData.data?.title || ""} at μDocs`,
       url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${slug}`,
       images: [
         {
@@ -51,6 +74,14 @@ export async function generateMetadata({
       images: [
         `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`,
       ],
+    },
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
     },
   };
 }
@@ -77,10 +108,19 @@ export default async function FilePage({
       publisher:publishers(id, name)
     `
     )
-    .eq("id", slug).is("deleted_at",null)
+    .eq("id", slug)
+    .is("deleted_at", null)
     .single();
   const data = fileData.data;
   const fileType = data?.type || "other";
+
+  if (!data) {
+    return (
+      <>
+        <h1 className="text-2xl font-bold">File not found</h1>
+      </>
+    );
+  }
 
   return (
     <>
@@ -102,13 +142,6 @@ export default async function FilePage({
               "@type": "Person",
               name: author.file_author.name,
             })),
-            bookFormat: data?.file_path
-              ? "https://schema.org/EBook"
-              : undefined,
-            ...(data?.publisher?.name && {
-              "@type": "Organization",
-              name: data?.publisher?.name,
-            }),
             datePublished: "2003-10-01",
             isbn: (data?.extra_meta as { isbn?: string })?.isbn,
             inLanguage: data?.language,
@@ -118,7 +151,7 @@ export default async function FilePage({
             url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
             keywords: data?.tags.map((tag) => tag.file_tag.name),
             potentialAction: {
-              "@type": "ReadAction",
+              "@type": "ViewAction",
               target: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
             },
           }).replace(/</g, "\\u003c"),
@@ -230,7 +263,7 @@ export default async function FilePage({
 }
 
 export async function generateStaticParams() {
-  const res = await supabase.from("files").select("id").is("deleted_at",null); // returns list of books
+  const res = await supabase.from("files").select("id").is("deleted_at", null); // returns list of books
   const books = res.data || [];
 
   return books.map((book: { id: string }) => ({

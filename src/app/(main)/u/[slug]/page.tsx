@@ -11,6 +11,8 @@ import {
 import supabase from "@/lib/supabase";
 import { CardGrid } from "../../(pages)/(page-layout)/explore/[...ids]/page-content";
 
+export const dynamicParams = false;
+
 export default async function UserProfilePage({
   params,
 }: {

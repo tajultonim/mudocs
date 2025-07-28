@@ -90,10 +90,7 @@ export const metadata: Metadata = {
       `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-1200x630.png`,
       `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/og-2500x1313.png`,
     ],
-    creator: "@tajultonim",
   },
-  authors: [{ name: "Tajul Tonim", url: "https://github.com/tajultonim" }],
-  creator: "Tajul Tonim",
   publisher: "μDocs",
   applicationName: "μDocs",
   keywords: [
@@ -112,9 +109,6 @@ export const metadata: Metadata = {
     "Academic Resources",
     "Research Papers",
   ],
-  alternates: {
-    canonical: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
-  },
   robots: {
     index: true,
     follow: true,
@@ -125,7 +119,7 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  }
+  },
 };
 
 export default function RootLayout({
