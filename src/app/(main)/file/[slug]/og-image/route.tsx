@@ -85,7 +85,7 @@ export async function GET(
         },
         {
           name: "Geist",
-          data: await loadFont("Semibold"),
+          data: await loadFont("SemiBold"),
           style: "normal",
           weight: 600,
         },
@@ -102,10 +102,6 @@ export async function GET(
 
 async function loadFont(type: string) {
   return await fetch(
-    `${
-      process.env.NODE_ENV == "development"
-        ? "http://localhost:3000"
-        : "https://" + process.env.VERCEL_PROJECT_PRODUCTION_URL
-    }/assets/Geist-${type}.ttf`
+    `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/assets/Geist-${type}.ttf`
   ).then((res) => res.arrayBuffer());
 }
