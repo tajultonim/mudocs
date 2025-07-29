@@ -35,9 +35,11 @@ export async function generateMetadata({
       robots: {
         index: false,
         follow: false,
+        noimageindex: true,
         googleBot: {
           index: false,
           follow: false,
+          noimageindex: true,
         },
       },
     };
@@ -54,7 +56,7 @@ export async function generateMetadata({
       url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${slug}`,
       images: [
         {
-          url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`,
+          url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${slug}/og-image`,
           width: 1200,
           height: 850,
           alt: fileData.data?.title || "File",
@@ -72,7 +74,7 @@ export async function generateMetadata({
         fileData.data?.description ||
         `${fileData.data?.title || ""} from μDocs`,
       images: [
-        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`,
+        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${slug}/og-image`,
       ],
     },
     robots: {

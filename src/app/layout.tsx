@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   category: "Education",
   title: {
-    default: "μDocs – Science PDF Library and Seminar Archive of RU PHY",
+    default: "μDocs – Science E-Library and Seminar Archive of RU PHY",
     template: "%s – μDocs",
   },
   description:
@@ -112,9 +112,11 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    noimageindex: true,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: true,
       "max-video-preview": -1,
       "max-image-preview": "large",
       "max-snippet": -1,
