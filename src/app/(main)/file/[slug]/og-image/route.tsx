@@ -3,8 +3,6 @@
 import supabase from "@/lib/supabase";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export async function GET(
   req: NextRequest,
@@ -103,5 +101,11 @@ export async function GET(
 }
 
 async function loadFont(type: string) {
-  return await readFile(join(process.cwd(), `public/assets/Geist-${type}.ttf`));
+  return await fetch(
+    `${
+      process.env.NODE_ENV == "development"
+        ? "http://localhost:3000"
+        : "https://" + process.env.VERCEL_PROJECT_PRODUCTION_URL
+    }/assets/Geist-${type}.ttf`
+  ).then((res) => res.arrayBuffer());
 }
