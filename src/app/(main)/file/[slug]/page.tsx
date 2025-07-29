@@ -149,7 +149,7 @@ export default async function FilePage({
             inLanguage: data?.language,
             description: data?.description,
             ...(fileType == "note" && { educationalLevel: "University" }),
-            image: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${data?.cover_path}`,
+            image: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}/og-image`,
             url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
             keywords: data?.tags.map((tag) => tag.file_tag.name),
             potentialAction: {
