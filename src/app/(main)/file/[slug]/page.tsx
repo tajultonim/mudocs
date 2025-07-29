@@ -239,13 +239,13 @@ export default async function FilePage({
               }
             />
             <InfoBar label="Type" value={fileData.data?.type || "-"} />
-            <InfoBar
+            {/* <InfoBar
               label="Size"
               value={
                 ((fileData.data?.size_bytes ?? 0) / (1024 * 1024)).toFixed(2) +
                 " MB"
               }
-            />
+            /> */}
             {/* <InfoBar
               label="Download Count"
               value={fileData.data?.download_count || 0}
