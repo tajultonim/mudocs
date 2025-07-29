@@ -140,7 +140,6 @@ export async function createDownload(file_id: string, user_id: string) {
   return { status: "success", data: downloadURL };
 }
 
-
 export async function getFilesByTagId(
   tagId: string,
   from: number = 0,
@@ -249,6 +248,7 @@ export async function getFilesByUserId(
     `,
       { count: "exact" }
     )
+    .is("deleted_at", null)
     .eq("uploader_id", userId)
     .order("download_count", { ascending: false })
     .range(from, to);
@@ -298,6 +298,7 @@ export async function getFilesByCategoryTypeByRange({
     `,
         { count: "exact" }
       )
+      .is("deleted_at", null)
       .eq("type", type)
       .order(orderBy, { ascending })
       .range(from, to);
@@ -318,6 +319,7 @@ export async function getFilesByCategoryTypeByRange({
     `,
         { count: "exact" }
       )
+      .is("deleted_at", null)
       .order(orderBy, { ascending })
       .range(from, to);
   }
@@ -348,6 +350,7 @@ export async function getFilesByRange(
       )
     `
     )
+    .is("deleted_at", null)
     .order(orderBy, { ascending })
     .range(from, to);
 

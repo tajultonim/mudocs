@@ -1,27 +1,21 @@
 //An next js og image generator function. A banner with the book cover url, title and author name and it will put the cover on the banner the banner will have the title of the website
 
 import supabase from "@/lib/supabase";
-import { NextApiRequest } from "next";
 import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-// Image metadata
-export const alt = "File cover";
-export const size = {
-  width: 1200,
-  height: 630,
-};
-
-export const contentType = "image/png";
-
-// Image generation
 export async function GET(
-  req: NextApiRequest,
-  { params }: { params: { slug: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ slug?: string }> }
 ) {
   const p = await params;
   const slug = p.slug;
+
+  if (!slug) {
+    return new Response("Not Found", { status: 404 });
+  }
 
   const fileData = await supabase
     .from("files")
@@ -67,15 +61,17 @@ export async function GET(
               tw=" w-[80%] text-2xl mt-4 mb-0"
             >
               Explore books, papers, notes including
-              {" "+fileData.data?.title} by{" "}
-              {fileData.data?.authors.map((a) => a.file_author.name).join(", ")} at μDocs
+              {" " + fileData.data?.title} by{" "}
+              {fileData.data?.authors.map((a) => a.file_author.name).join(", ")}{" "}
+              at μDocs
             </p>
           </div>
         </div>
       </div>
     ),
     {
-      ...size,
+      width: 1200,
+      height: 630,
       fonts: [
         {
           name: "Geist",

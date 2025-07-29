@@ -8,7 +8,7 @@ import { Metadata } from "next";
 
 export const dynamic = "force-static";
 
-export const revalidate = 60 * 60;
+export const revalidate = 3600;
 
 export const dynamicParams = false;
 
