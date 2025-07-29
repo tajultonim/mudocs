@@ -1,10 +1,10 @@
 "use client";
 
 import DownloadButton from "@/components/download-button";
-import { LoginPopup } from "@/components/login-alert";
+// import { LoginPopup } from "@/components/login-alert";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/authprovider";
-import { Download, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export default function ButtonSet({
