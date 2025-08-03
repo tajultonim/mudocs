@@ -196,13 +196,21 @@ export async function signup(formData: FormData) {
   return { status: "success", message: "Signup successful!" };
 }
 
+type UserPayloadData={
+  id: string;
+  username: string;
+  email: string;
+  roles: string[];
+  is_verified: boolean;
+}
+
 export async function validateUser(accessToken: string) {
   if (!accessToken) {
     return { error: "Access token is required." };
   }
 
   try {
-    const payload = await verifyJWT(accessToken);
+    const payload: UserPayloadData|null = await verifyJWT(accessToken);
     // if (!payload || payload.type !== "access") {
     if (!payload) {
       return { error: "Invalid access token." };

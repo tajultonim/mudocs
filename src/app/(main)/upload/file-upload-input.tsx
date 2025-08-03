@@ -6,25 +6,25 @@ import Dropzone, {
   DropzoneInputProps,
 } from "react-dropzone";
 import Image from "next/image";
-import { getDocument, GlobalWorkerOptions,  } from "pdfjs-dist";
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 import { createSHA256 } from "hash-wasm";
+import { Skeleton } from "@/components/ui/skeleton";
 
 GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
 
 export default function FileInput({
   onFileDrop,
 }: {
-  onFileDrop: (params: {
-    file: File;
-    cover: string;
-    hash: string;
-  }) => void;
+  onFileDrop: (params: { file: File; cover: string; hash: string }) => void;
 }) {
   const [coverUrl, setCoverUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   async function handleFileDrop(file: File) {
+    setIsLoading(true);
     const url = await extractCoverImage(file);
     setCoverUrl(url);
+    setIsLoading(false);
     const hash = await generateSHA256(file);
     onFileDrop({ file, cover: url, hash });
   }
@@ -53,11 +53,20 @@ export default function FileInput({
                 alt="preview"
                 width={250}
                 height={350}
-                className={`w-full ${coverUrl ? "" : "hidden"}`}
+                className={`w-full ${coverUrl && !isLoading ? "" : "hidden"}`}
               />
+              <Skeleton
+                className={`${
+                  isLoading ? "flex" : "hidden"
+                } w-[256px] h-[384px] border-2 border-gray-300 border-dashed rounded-lg justify-center items-center`}
+              >
+                <p className="mb-2 font-semibold text-sm text-gray-500 dark:text-gray-400">
+                  Generating Cover...
+                </p>
+              </Skeleton>
               <div
                 className={`${
-                  coverUrl ? "hidden" : "flex"
+                  coverUrl || isLoading ? "hidden" : "flex"
                 } flex-col items-center justify-center pt-5 pb-6`}
               >
                 <svg
@@ -76,8 +85,8 @@ export default function FileInput({
                   />
                 </svg>
                 <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold">Click to upload</span> or
-                  drag and drop
+                  <span className="font-semibold">Click to upload</span> or drag
+                  and drop
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Only PDF files are currently supported.
@@ -131,9 +140,9 @@ async function extractCoverImage(file: File): Promise<string> {
 
 // Generates SHA-256 hash of the file
 const generateSHA256 = async (file: File): Promise<string> => {
-   const hasher = await createSHA256();
-    hasher.init();
-    const arrayBuffer = await file.arrayBuffer();
-    hasher.update(new Uint8Array(arrayBuffer));
-    return hasher.digest('hex');
+  const hasher = await createSHA256();
+  hasher.init();
+  const arrayBuffer = await file.arrayBuffer();
+  hasher.update(new Uint8Array(arrayBuffer));
+  return hasher.digest("hex");
 };

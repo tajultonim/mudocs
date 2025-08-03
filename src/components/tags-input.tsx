@@ -84,6 +84,9 @@ export default function TagsInput({
       return;
     } else {
       const newtagres = await onNewTag?.(name);
+      if (newtagres?.status !== "success") {
+        return alert("Couldn't add new entry!");
+      }
       addSelectedTag({
         id: newtagres?.data?.id || "",
         name: newtagres?.data?.name || name,

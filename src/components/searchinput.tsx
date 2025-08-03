@@ -76,7 +76,7 @@ function SearchResult({ data }: { data: SearchResultType }) {
           <div className=" ">
             <Image
               alt={data.title}
-              src={`https://mudocsstorage.blob.core.windows.net/${data.cover_path}`}
+              src={`/remote/${data.cover_path}`}
               width={(60 * 63) / 94}
               height={60}
             />

@@ -1,5 +1,7 @@
 "use client";
 
+import { deleteFile } from "@/app/actions/file-action";
+import { useAlert } from "@/components/alerts";
 import DownloadButton from "@/components/download-button";
 // import { LoginPopup } from "@/components/login-alert";
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,8 @@ export default function ButtonSet({
       {user ? (
         <DownloadButton file_id={id} file_title={title} />
       ) : (
-       <> 
-       {/* <LoginPopup
+        <>
+          {/* <LoginPopup
           title="Login Required"
           description="Please login to download files and enjoy other features"
         >
@@ -38,7 +40,7 @@ export default function ButtonSet({
       {user?.id == uploader_id || user?.roles.includes("admin") ? (
         <>
           <EditButton id={id} />
-          <DeleteButton />
+          <DeleteButton id={id} />
         </>
       ) : (
         <></>
@@ -47,12 +49,27 @@ export default function ButtonSet({
   );
 }
 
-function DeleteButton() {
+function DeleteButton({ id }: { id: string }) {
+  const { AlertComponent, showAlert } = useAlert();
+  async function handleDelete() {
+    const confirmed = confirm("Are you sure you want to delete this file?");
+    if (!confirmed) return;
+    const res = await deleteFile(id);
+    showAlert({
+      title: res.status === "success" ? "Success" : "Error",
+      message: res.message,
+      type: res.status === "success" ? "success" : "error",
+    });
+    window.location.href = "/";
+  }
   return (
-    <Button variant="destructive">
-      <Trash2 className="mr-1" />
-      Delete
-    </Button>
+    <>
+      <Button variant="destructive" onClick={handleDelete}>
+        <Trash2 className="mr-1" />
+        Delete
+      </Button>
+      <AlertComponent />
+    </>
   );
 }
 

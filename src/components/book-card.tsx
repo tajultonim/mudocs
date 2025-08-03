@@ -26,7 +26,7 @@ export default function BookCard({
             quality={1}
           />
           <p className=" pl-2 mt-2 line-clamp-1">{title}</p>
-          <p className=" pl-2 text-sm text-gray-400 line-clamp-1">{author}</p>
+          <p className=" pl-2 text-sm text-gray-800 line-clamp-1">{author}</p>
         </CardContent>
       </Card>
     </Link>

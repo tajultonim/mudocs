@@ -5,8 +5,8 @@ import { toSlug } from "@/lib/text-helper";
 import { revalidateSSGPath } from "./revalidation";
 
 export async function create(name: string) {
-  if (!name.trim().length || !/[^a-zA-Z0-9]/.test(name)) {
-    return;
+  if (!name.trim().length || !/^[a-zA-Z0-9 ]+$/.test(name)) {
+    return { status: "error", message: "Invalid tag name." };
   }
   const nname = name
     .toLowerCase()

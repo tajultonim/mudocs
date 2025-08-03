@@ -4,6 +4,7 @@ import { generateUploadSASUrl, generateDownloadSASUrl } from "@/lib/azure";
 import supabase from "@/lib/supabase";
 import { cookies } from "next/headers";
 import { validateUser } from "./auth-action";
+import { revalidateSSGPath } from "./revalidation";
 
 export async function getSasUrl(r_path: string) {
   const container = r_path.split("/")[0];
@@ -23,10 +24,14 @@ export async function getSasUrl(r_path: string) {
     .from("files")
     .select("id")
     .eq("sha256_hash", hash)
-    .single();
-  if (efile.data) {
+    .neq("status", "uploading");
+
+  if (efile.data?.length) {
     throw new Error("File already exists in the database.");
+  } else if (efile.error) {
+    throw new Error(efile.error.message);
   }
+
   return generateUploadSASUrl(r_path);
 }
 
@@ -41,7 +46,51 @@ export async function uploadComplete(id: string) {
   if (error) {
     return false;
   }
+  await revalidateSSGPath("/file/" + id);
   return true;
+}
+
+export async function deleteFile(id: string): Promise<{
+  status: string;
+  message: string;
+}> {
+  if (!id) {
+    return { status: "error", message: "File ID is required." };
+  }
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value;
+  const vres = await validateUser(accessToken as string);
+  if (vres.status !== "success" || !vres.data) {
+    return { status: "error", message: "Access denied!" };
+  }
+
+  if (vres.data.roles.includes("admin")) {
+    const { error } = await supabase
+      .from("files")
+      .update({ deleted_at: new Date().toISOString() })
+      .is("deleted_at", null)
+      .eq("id", id);
+    if (error) {
+      return { status: "error", message: error.message };
+    }
+    await revalidateSSGPath("/file/" + id);
+    return { status: "success", message: "File deleted successfully." };
+  }
+  const { error, data } = await supabase
+    .from("files")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("uploader_id", vres.data.id)
+    .select("id");
+
+  if (error) {
+    return { status: "error", message: error.message };
+  }
+  if (!data?.length) {
+    return { status: "error", message: "File not found or access denied." };
+  }
+  await revalidateSSGPath("/file/" + id);
+  return { status: "success", message: "File deleted successfully." };
 }
 
 export async function createUpload({
@@ -95,6 +144,40 @@ export async function createUpload({
     return { status: "error", message: "Missing required fields." };
   }
 
+  const { data: predata, error: predataError } = await supabase
+    .from("files")
+    .select("id")
+    .eq("sha256_hash", sha256_hash)
+    .neq("status", "uploading");
+
+  if (predata?.length || predataError) {
+    console.log(predataError);
+    return {
+      status: "error",
+      message: predata?.length
+        ? "File already exists"
+        : "Error fetching file data",
+    };
+  }
+
+  console.log({
+    title,
+    file_path,
+    hash: sha256_hash,
+    mime_type,
+    size_bytes,
+    type,
+    description: description || "",
+    extra_meta: { isbn, doi },
+    cover_path: cover_path || "",
+    tag_ids: tags,
+    year: year,
+    publisher_id: publisher_id,
+    author_ids: authors,
+    user_id: vres.data.id as string,
+    language: language,
+  })
+
   const { data, error } = await supabase.rpc("create_file_upload", {
     title,
     file_path,
@@ -113,6 +196,7 @@ export async function createUpload({
     language: language,
   });
   if (error) {
+    console.log(error);
     return { status: "error", message: error.message };
   }
   return {
@@ -249,6 +333,7 @@ export async function getFilesByUserId(
       { count: "exact" }
     )
     .is("deleted_at", null)
+    .neq("status", "uploading")
     .eq("uploader_id", userId)
     .order("download_count", { ascending: false })
     .range(from, to);
@@ -299,6 +384,7 @@ export async function getFilesByCategoryTypeByRange({
         { count: "exact" }
       )
       .is("deleted_at", null)
+      .neq("status", "uploading")
       .eq("type", type)
       .order(orderBy, { ascending })
       .range(from, to);
@@ -320,6 +406,7 @@ export async function getFilesByCategoryTypeByRange({
         { count: "exact" }
       )
       .is("deleted_at", null)
+      .neq("status", "uploading")
       .order(orderBy, { ascending })
       .range(from, to);
   }
@@ -351,6 +438,7 @@ export async function getFilesByRange(
     `
     )
     .is("deleted_at", null)
+    .neq("status", "uploading")
     .order(orderBy, { ascending })
     .range(from, to);
 

@@ -7,29 +7,61 @@ export async function uploadFileWithManualProgress({
 }: {
   file: File;
   sasUrl: string;
-  onProgress: (percent: number) => void;
+  onProgress: ({
+    percent,
+    size_bytes,
+    uploaded_bytes,
+  }: {
+    percent: number;
+    size_bytes: number;
+    uploaded_bytes: number;
+  }) => void;
 }) {
-  const blockSize = 1024 * 256; // 256KB
-  const blockIds: string[] = [];
+  const blockSize = 1024 * 1024 * 2; // 2MB
   const totalBlocks = Math.ceil(file.size / blockSize);
-  let uploadedBytes = 0;
-
   const blockBlobClient = new BlockBlobClient(sasUrl);
 
-  for (let i = 0; i < totalBlocks; i++) {
-    const blockId = btoa(String(i).padStart(6, "0")); // base64-encoded block ID
-    blockIds.push(blockId);
+  const blockIds: string[] = [];
+  const concurrency = 5;
+  let uploadedBytes = 0;
+  const uploadedBytesMap = new Array(totalBlocks).fill(0); // for thread-safe progress
 
-    const start = i * blockSize;
+  const uploadBlock = async (index: number) => {
+    const blockId = btoa(String(index).padStart(6, "0"));
+    const start = index * blockSize;
     const end = Math.min(start + blockSize, file.size);
     const blockData = file.slice(start, end);
 
     await blockBlobClient.stageBlock(blockId, blockData, blockData.size);
-    uploadedBytes += blockData.size;
+    blockIds[index] = blockId;
 
+    uploadedBytesMap[index] = blockData.size;
+    uploadedBytes = uploadedBytesMap.reduce((a, b) => a + b, 0);
     const percent = Math.round((uploadedBytes / file.size) * 100);
-    onProgress(percent);
-  }
 
+    onProgress({
+      percent,
+      size_bytes: file.size,
+      uploaded_bytes: uploadedBytes,
+    });
+  };
+
+  const indexes = Array.from({ length: totalBlocks }, (_, i) => i);
+
+  // Limit parallelism
+  const parallelUploads = async () => {
+    const executing: Promise<void>[] = [];
+    for (const index of indexes) {
+      const upload = uploadBlock(index);
+      executing.push(upload);
+      if (executing.length >= concurrency) {
+        await Promise.race(executing);
+        executing.splice(executing.findIndex(p => p === upload), 1);
+      }
+    }
+    await Promise.all(executing);
+  };
+
+  await parallelUploads();
   await blockBlobClient.commitBlockList(blockIds);
 }

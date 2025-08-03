@@ -16,6 +16,8 @@ export async function generateMetadata({
   const fileData = await supabase
     .from("files")
     .select("title, description, cover_path")
+    .is("deleted_at", null)
+    .neq("status", "uploading")
     .eq("id", slug)
     .single();
 
@@ -112,6 +114,7 @@ export default async function FilePage({
     )
     .eq("id", slug)
     .is("deleted_at", null)
+    .neq("status", "uploading")
     .single();
   const data = fileData.data;
   const fileType = data?.type || "other";
@@ -265,7 +268,7 @@ export default async function FilePage({
 }
 
 export async function generateStaticParams() {
-  const res = await supabase.from("files").select("id").is("deleted_at", null); // returns list of books
+  const res = await supabase.from("files").select("id").is("deleted_at", null).neq("status", "uploading"); // returns list of books
   const books = res.data || [];
 
   return books.map((book: { id: string }) => ({

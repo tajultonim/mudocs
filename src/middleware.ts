@@ -5,10 +5,9 @@ const PRIVATE_PATHS = ["/upload", "/api/auth/me", "/login", "/signup"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (!PRIVATE_PATHS.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
+  // if (!PRIVATE_PATHS.some((p) => pathname.startsWith(p))) {
+  //   return NextResponse.next();
+  // }
   const redirectUrl = new URL(req.nextUrl);
   const host = req.headers.get("host");
 
@@ -20,17 +19,23 @@ export async function middleware(req: NextRequest) {
   const refreshToken = req.cookies.get("refresh_token")?.value;
 
   if (!refreshToken) {
-    if (pathname == "/api/auth/me") {
-      return NextResponse.next();
-    }
-    if (pathname != "/login" && pathname != "/signup") {
+    if (
+      pathname != "/login" &&
+      pathname != "/signup" &&
+      PRIVATE_PATHS.some((p) => pathname.startsWith(p))
+    ) {
       return NextResponse.redirect(new URL("/login", req.url));
-    } else {
-      return NextResponse.next();
     }
   }
 
+  if (!accessToken && !refreshToken) {
+    return NextResponse.next();
+  }
+
   if (!accessToken) {
+    if (pathname.startsWith("/api/auth/refresh-token")) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(
       new URL(`/api/auth/refresh-token?redirect=${redirectUrl}`, req.url)
     );
@@ -59,5 +64,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|favicon.ico|public).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|public/|.*\\.png$).*)",
+  ],
 };

@@ -5,8 +5,8 @@ import { revalidateSSGPath } from "./revalidation";
 import { toSlug } from "@/lib/text-helper";
 
 export async function create(name: string) {
-  if (!name.trim().length || !/[^a-zA-Z0-9]/.test(name)) {
-    return;
+  if (!name.trim().length || !/^[a-zA-Z0-9 .]+$/.test(name.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))) {
+    return { status: "error", message: "Invalid author name."};
   }
   const nname = name
     .toLowerCase()

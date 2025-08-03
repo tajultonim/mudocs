@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAlert } from "@/components/alerts";
 
 const FileInput = dynamic(() => import("./file-upload-input"), {
   ssr: false,
@@ -61,9 +62,14 @@ export default function UploadForm({
   const [doi, setDoi] = useState("");
   const [isbn, setIsbn] = useState("");
   const [isloading, setIsloading] = useState(false);
-  const [percentage, setPercentage] = useState(0);
+  const [percentage, setPercentage] = useState({
+    percent: 0,
+    uploaded_bytes: 0,
+    size_bytes: 0,
+  });
   const [year, setYear] = useState<string>("");
-  const [languaege, setLanguage] = useState<string>("");
+  const [language, setLanguage] = useState<string>("");
+  const { showAlert, AlertComponent } = useAlert();
 
   const disabled =
     !file || !fileName || !category || isloading || !selectedAuthors.length;
@@ -114,7 +120,7 @@ export default function UploadForm({
         publisher_id: selectedPublisher,
         year: year,
         cover_path: "file-covers/" + hash + ".png",
-        language: languaege,
+        language: language,
       });
 
       if (res.status === "success") {
@@ -122,15 +128,15 @@ export default function UploadForm({
           uploadFileWithManualProgress({
             file,
             sasUrl: FileSASUrl as string,
-            onProgress: (percent) => {
-              setPercentage(percent);
+            onProgress: (p) => {
+              setPercentage(p);
             },
           }),
           uploadFileWithManualProgress({
             file: coverFile,
             sasUrl: CoverSASUrl as string,
-            onProgress: (percent) => {
-              console.log(`Cover upload progress: ${percent.toFixed(2)}%`);
+            onProgress: (p) => {
+              console.log(`Cover upload progress:`, p);
             },
           }),
         ]);
@@ -139,23 +145,43 @@ export default function UploadForm({
           revalidateSSGPath(`/file/${res.data}`),
           revalidateSSGPath("/"),
         ]);
-        alert("File uploaded successfully!");
+        showAlert({
+          message: "File uploaded successfully!",
+          type: "success",
+          title: "Upload Complete",
+        });
         window.location.reload();
       } else {
         console.log("errorrr", res);
-        alert("Error uploading file: " + res.message);
+        showAlert({
+          message: res.message,
+          type: "error",
+          title: "Upload Failed",
+        });
       }
     } catch (error) {
       const e = error as { code?: string; message?: string };
       if (e["code"] == "UnauthorizedBlobOverwrite") {
-        alert("File already exists in our server.\n hash: " + hash);
+        showAlert({
+          message: "File already exists in our server.\n hash: " + hash,
+          type: "error",
+          title: "Upload Failed",
+        });
         console.log("File already exists\n hash: " + hash);
       } else if (error instanceof Error) {
         console.error("Error message:", error.message);
-        alert("Error uploading file: " + error.message);
+        showAlert({
+          message: "Error uploading file: " + error.message,
+          type: "error",
+          title: "Upload Failed",
+        });
       } else {
         console.error("Unexpected error:", error);
-        alert("Error uploading file: " + error);
+        showAlert({
+          message: "Error uploading file: " + error,
+          type: "error",
+          title: "Upload Failed",
+        });
       }
     } finally {
       setIsloading(false);
@@ -163,179 +189,190 @@ export default function UploadForm({
   }
 
   return (
-    <div className="p-8 py-2 rounded flex flex-col md:flex-row gap-2 sm:gap-8 items-center">
-      <div className="flex flex-col items-center w-full sm:w-[40%] md:w-auto">
-        <FileInput
-          onFileDrop={(data) => {
-            setFile(data.file);
-            setCover(data.cover);
-            setHash(data.hash);
-          }}
-        />
-      </div>
-      {/* Form (right) */}
-      <div className="flex-1 w-full sm:w-[60%] flex flex-col gap-4">
-        <h1 className="text-2xl font-bold mb-2 text-white">Upload File</h1>
-        <InputField
-          title="File Name"
-          type="text"
-          placeholder="Enter file name"
-          initvalue={fileName}
-          onChange={(e) => {
-            setFileName(e.target.value);
-          }}
-        />
-        <InputField
-          title="Description"
-          type="text"
-          initvalue={description}
-          placeholder="Enter description"
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
-        />
-        <SelectInput
-          title="Category"
-          onChange={(e) => {
-            setCategory(e.value);
-          }}
-          options={[
-            { label: "Book", value: "book" },
-            { label: "Paper", value: "paper" },
-            { label: "Note", value: "note" },
-            { label: "Other", value: "other" },
-          ]}
-          required
-        />
-
-        {category === "note" || category == "other" ? (
-          <InputField
-            title="Author"
-            type="text"
-            placeholder="self"
-            initvalue="self"
-            onChange={() => {
-              setSelectedAuthors(["self"]);
+    <>
+      <div className="p-8 py-2 rounded flex flex-col md:flex-row gap-2 sm:gap-8 items-center">
+        <div className="flex flex-col items-center w-full sm:w-[40%] md:w-auto">
+          <FileInput
+            onFileDrop={(data) => {
+              setFile(data.file);
+              setCover(data.cover);
+              setHash(data.hash);
             }}
-            disabled
           />
-        ) : (
+        </div>
+        {/* Form (right) */}
+        <div className="flex-1 w-full sm:w-[60%] flex flex-col gap-4">
+          <h1 className="text-2xl font-bold mb-2 text-white">Upload File</h1>
+          <InputField
+            title="File Name"
+            type="text"
+            placeholder="Enter file name"
+            initvalue={fileName}
+            onChange={(e) => {
+              setFileName(e.target.value);
+            }}
+          />
+          <InputField
+            title="Description"
+            type="text"
+            initvalue={description}
+            placeholder="Enter description"
+            onChange={(e) => {
+              setDescription(e.target.value);
+            }}
+          />
+          <SelectInput
+            title="Category"
+            onChange={(e) => {
+              setCategory(e.value);
+            }}
+            options={[
+              { label: "Book", value: "book" },
+              { label: "Paper", value: "paper" },
+              { label: "Note", value: "note" },
+              { label: "Other", value: "other" },
+            ]}
+            required
+          />
+
+          {category === "note" || category == "other" ? (
+            <InputField
+              title="Author"
+              type="text"
+              placeholder="self"
+              initvalue="self"
+              onChange={() => {
+                setSelectedAuthors(["self"]);
+              }}
+              disabled
+            />
+          ) : (
+            <TagsInput
+              title="Authors (maintain order)"
+              tags={authors}
+              allowNewTag
+              isOrdered
+              onNewTag={async (name: string) => {
+                const res = await authoractions.create(name);
+                return {
+                  status: res?.status || "error",
+                  data: res?.data,
+                };
+              }}
+              onChange={(e) => {
+                setSelectedAuthors(e.value);
+              }}
+            />
+          )}
+          {category === "book" && (
+            <SelectInput
+              options={
+                publishers?.map((p) => ({
+                  label: p.name,
+                  value: p.id,
+                })) || []
+              }
+              title="Publisher"
+              onNewTag={(value) => {
+                return publisheractions.create(value).then((res) => {
+                  setSelectedPublisher(res?.data?.id || "");
+                  return {
+                    status: res?.status || "error",
+                    data: res?.data
+                      ? { value: res.data.id, label: res.data.name }
+                      : undefined,
+                  };
+                });
+              }}
+              onChange={(e) => setSelectedPublisher(e.value)}
+            />
+          )}
+          <SelectInput
+            options={Array.from({ length: 100 }, (_, i) => ({
+              label: (new Date().getFullYear() - i).toString(),
+              value: (new Date().getFullYear() - i).toString(),
+            }))}
+            title="Year"
+            onNewTag={(value: string) => {
+              if (
+                parseInt(value) < 100 ||
+                parseInt(value) > new Date().getFullYear()
+              ) {
+                return {
+                  status: "error",
+                  data: { value: value, label: value },
+                };
+              }
+              return {
+                status: "success",
+                data: { value: value, label: value },
+              };
+            }}
+            onChange={(e) => setYear(e.value)}
+          />
+          <SelectInput
+            title="Language"
+            options={[
+              { label: "English", value: "en" },
+              { label: "Bengali", value: "bn" },
+            ]}
+            onChange={(e) => setLanguage(e.value)}
+          />
           <TagsInput
-            title="Authors (maintain order)"
-            tags={authors}
+            title="Tags"
+            tags={tags}
             allowNewTag
-            isOrdered
             onNewTag={async (name: string) => {
-              const res = await authoractions.create(name);
+              const res = await tagactions.create(name);
+              if (res?.status == "error") {
+                alert(JSON.stringify(res));
+              }
               return {
                 status: res?.status || "error",
                 data: res?.data,
               };
             }}
             onChange={(e) => {
-              setSelectedAuthors(e.value);
+              setSelectedTags(e.value);
             }}
           />
-        )}
-        {category === "book" && (
-          <SelectInput
-            options={
-              publishers?.map((p) => ({
-                label: p.name,
-                value: p.id,
-              })) || []
-            }
-            title="Publisher"
-            onNewTag={(value) => {
-              return publisheractions.create(value).then((res) => {
-                setSelectedPublisher(res?.data?.id || "");
-                return {
-                  status: res?.status || "error",
-                  data: res?.data
-                    ? { value: res.data.id, label: res.data.name }
-                    : undefined,
-                };
-              });
+          {category === "book" ? (
+            <InputField
+              title="ISBN (optional)"
+              type="text"
+              initvalue={isbn}
+              placeholder="Enter ISBN"
+              onChange={(e) => {
+                setIsbn(e.target.value);
+              }}
+            />
+          ) : category === "paper" ? (
+            <InputField
+              title="DOI (optional)"
+              type="text"
+              initvalue={doi}
+              placeholder="Enter DOI"
+              onChange={(e) => {
+                setDoi(e.target.value);
+              }}
+            />
+          ) : null}
+          <Button
+            disabled={disabled || isloading}
+            onClick={async () => {
+              await handleFileUpload();
             }}
-            onChange={(e) => setSelectedPublisher(e.value)}
-          />
-        )}
-        <SelectInput
-          options={Array.from({ length: 100 }, (_, i) => ({
-            label: (new Date().getFullYear() - i).toString(),
-            value: (new Date().getFullYear() - i).toString(),
-          }))}
-          title="Year"
-          onNewTag={(value: string) => {
-            if (
-              parseInt(value) < 100 ||
-              parseInt(value) > new Date().getFullYear()
-            ) {
-              return {
-                status: "error",
-                data: { value: value, label: value },
-              };
-            }
-            return {
-              status: "success",
-              data: { value: value, label: value },
-            };
-          }}
-          onChange={(e) => setYear(e.value)}
-        />
-        <SelectInput
-          title="Language"
-          options={[
-            { label: "English", value: "en" },
-            { label: "Bengali", value: "bn" },
-          ]}
-          onChange={(e) => setLanguage(e.value)}
-        />
-        <TagsInput
-          title="Tags"
-          tags={tags}
-          allowNewTag
-          onNewTag={async (name: string) => {
-            const res = await tagactions.create(name);
-            return {
-              status: res?.status || "error",
-              data: res?.data,
-            };
-          }}
-          onChange={(e) => {
-            setSelectedTags(e.value);
-          }}
-        />
-        {category === "book" ? (
-          <InputField
-            title="ISBN (optional)"
-            type="text"
-            placeholder="Enter ISBN"
-            onChange={(e) => {
-              setIsbn(e.target.value);
-            }}
-          />
-        ) : category === "paper" ? (
-          <InputField
-            title="DOI (optional)"
-            type="text"
-            initvalue={doi}
-            placeholder="Enter DOI"
-            onChange={(e) => {
-              setDoi(e.target.value);
-            }}
-          />
-        ) : null}
-        <Button
-          disabled={disabled || isloading}
-          onClick={async () => {
-            await handleFileUpload();
-          }}
-        >
-          {isloading ? `${percentage}% uploaded...` : "Upload"}
-        </Button>
+          >
+            {isloading
+              ? `${percentage.percent}% uploaded (${
+                  (percentage.uploaded_bytes / (1024 * 1024)).toFixed(2)
+                }MB/${(percentage.size_bytes / (1024 * 1024)).toFixed(2)}MB)...`
+              : "Upload"}
+          </Button>
+        </div>
       </div>
-    </div>
+      <AlertComponent />
+    </>
   );
 }
 
