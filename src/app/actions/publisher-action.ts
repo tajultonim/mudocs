@@ -5,7 +5,7 @@ import { toSlug } from "@/lib/text-helper";
 import { revalidateSSGPath } from "./revalidation";
 
 export async function create(name: string) {
-  if (!name.trim().length || !/[^a-zA-Z0-9]/.test(name)) {
+  if (!name.trim().length || !/^[a-zA-Z0-9 .]+$/.test(name.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))) {
     return;
   }
   const nname = name
