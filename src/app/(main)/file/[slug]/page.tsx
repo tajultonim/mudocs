@@ -139,6 +139,23 @@ export default async function FilePage({
   const data = fileData.data;
   const fileType = data?.type || "other";
 
+  function IconLabel({
+    Icon,
+    children,
+    className,
+  }: {
+    Icon: LucideIcon;
+    children: React.ReactNode;
+    className?: string;
+  }) {
+    return (
+      <div className={`flex gap-2 ${className}`}>
+        <Icon size={18} className="h-6" />
+        <div>{children}</div>
+      </div>
+    );
+  }
+
   if (!data) {
     return (
       <>
@@ -342,31 +359,14 @@ export default async function FilePage({
   );
 }
 
-export function IconLabel({
-  Icon,
-  children,
-  className,
-}: {
-  Icon: LucideIcon;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`flex gap-2 ${className}`}>
-      <Icon size={18} className="h-6" />
-      <div>{children}</div>
-    </div>
-  );
+export async function generateStaticParams() {
+  const res = await supabase
+    .from("files")
+    .select("id")
+    .is("deleted_at", null)
+    .neq("status", "uploading"); // returns list of books
+  const books = res.data || [];
+  return books.map((book: { id: string }) => ({
+    slug: book.id,
+  }));
 }
-
-// export async function generateStaticParams() {
-//   const res = await supabase
-//     .from("files")
-//     .select("id")
-//     .is("deleted_at", null)
-//     .neq("status", "uploading"); // returns list of books
-//   const books = res.data || [];
-//   return books.map((book: { id: string }) => ({
-//     slug: book.id,
-//   }));
-// }
