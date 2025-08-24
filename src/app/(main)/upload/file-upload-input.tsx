@@ -17,7 +17,7 @@ export default function FileInput({
 }: {
   onFileDrop: (params: { file: File; cover: string; hash: string }) => void;
 }) {
-  const [coverUrl, setCoverUrl] = useState<string>("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   async function handleFileDrop(file: File) {
@@ -49,7 +49,7 @@ export default function FileInput({
           <div {...getRootProps()}>
             <label className="flex flex-col items-center justify-center aspect-[2/3] w-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
               <Image
-                src={coverUrl || "/images/loading.gif"}
+                src={coverUrl as string}
                 alt="preview"
                 width={250}
                 height={350}

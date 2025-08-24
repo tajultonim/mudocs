@@ -8,6 +8,12 @@ export async function middleware(req: NextRequest) {
   // if (!PRIVATE_PATHS.some((p) => pathname.startsWith(p))) {
   //   return NextResponse.next();
   // }
+  if (
+    req.method !== "POST" &&
+    !PRIVATE_PATHS.some((p) => pathname.startsWith(p))
+  ) {
+    return NextResponse.next();
+  }
   const redirectUrl = new URL(req.nextUrl);
   const host = req.headers.get("host");
 

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -22,10 +22,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          extensions?: Json
           operationName?: string
           query?: string
           variables?: Json
-          extensions?: Json
         }
         Returns: Json
       }
@@ -134,7 +134,14 @@ export type Database = {
             foreignKeyName: "comments_file_id_fkey"
             columns: ["file_id"]
             isOneToOne: false
-            referencedRelation: "files"
+            referencedRelation: "document_with_publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
           {
@@ -146,81 +153,88 @@ export type Database = {
           },
         ]
       }
-      file_authors: {
+      document_author: {
         Row: {
           author_id: string
           created_at: string
-          file_id: string
+          document_id: string
           id: string
           order: number
         }
         Insert: {
           author_id: string
           created_at?: string
-          file_id: string
+          document_id: string
           id?: string
           order?: number
         }
         Update: {
           author_id?: string
           created_at?: string
-          file_id?: string
+          document_id?: string
           id?: string
           order?: number
         }
         Relationships: [
           {
-            foreignKeyName: "file_authors_author_id_fkey"
+            foreignKeyName: "document_author_author_id_fkey"
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "authors"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "file_authors_author_id_fkey1"
-            columns: ["author_id"]
+            foreignKeyName: "document_author_document_id_fkey"
+            columns: ["document_id"]
             isOneToOne: false
-            referencedRelation: "authors"
+            referencedRelation: "document_with_publishers"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "file_authors_file_id_fkey"
-            columns: ["file_id"]
+            foreignKeyName: "document_author_document_id_fkey"
+            columns: ["document_id"]
             isOneToOne: false
-            referencedRelation: "files"
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
         ]
       }
-      file_tags: {
+      document_tag: {
         Row: {
           created_at: string
-          file_id: string
+          document_id: string
           id: string
           tag_id: string
         }
         Insert: {
           created_at?: string
-          file_id: string
+          document_id: string
           id?: string
           tag_id: string
         }
         Update: {
           created_at?: string
-          file_id?: string
+          document_id?: string
           id?: string
           tag_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "file_tags_file_id_fkey"
-            columns: ["file_id"]
+            foreignKeyName: "document_tag_document_id_fkey"
+            columns: ["document_id"]
             isOneToOne: false
-            referencedRelation: "files"
+            referencedRelation: "document_with_publishers"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "file_tags_tag_id_fkey"
+            foreignKeyName: "document_tag_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_tag_tag_id_fkey"
             columns: ["tag_id"]
             isOneToOne: false
             referencedRelation: "tags"
@@ -228,92 +242,217 @@ export type Database = {
           },
         ]
       }
-      files: {
+      documents: {
         Row: {
-          call_no: string | null
-          cover_path: string | null
+          cover_path: string
           created_at: string
+          ddc: string | null
           deleted_at: string | null
           description: string | null
+          doi: string | null
           download_count: number
           extra_meta: Json | null
-          file_path: string
           id: string
-          identifier: string | null
-          language: string | null
-          mime_type: string
-          pdl_no: string | null
-          publisher: string | null
-          sha256_hash: string
-          size_bytes: number
+          isbn_13: string[] | null
+          language: Database["public"]["Enums"]["language_type"] | null
           status: string | null
           title: string
           type: string
           updated_at: string | null
           uploader_id: string | null
-          year: string | null
         }
         Insert: {
-          call_no?: string | null
-          cover_path?: string | null
+          cover_path?: string
           created_at?: string
+          ddc?: string | null
           deleted_at?: string | null
           description?: string | null
+          doi?: string | null
           download_count?: number
           extra_meta?: Json | null
-          file_path: string
           id?: string
-          identifier?: string | null
-          language?: string | null
-          mime_type: string
-          pdl_no?: string | null
-          publisher?: string | null
-          sha256_hash: string
-          size_bytes: number
+          isbn_13?: string[] | null
+          language?: Database["public"]["Enums"]["language_type"] | null
           status?: string | null
           title: string
           type: string
           updated_at?: string | null
           uploader_id?: string | null
-          year?: string | null
         }
         Update: {
-          call_no?: string | null
-          cover_path?: string | null
+          cover_path?: string
           created_at?: string
+          ddc?: string | null
           deleted_at?: string | null
           description?: string | null
+          doi?: string | null
           download_count?: number
           extra_meta?: Json | null
-          file_path?: string
           id?: string
-          identifier?: string | null
-          language?: string | null
-          mime_type?: string
-          pdl_no?: string | null
-          publisher?: string | null
-          sha256_hash?: string
-          size_bytes?: number
+          isbn_13?: string[] | null
+          language?: Database["public"]["Enums"]["language_type"] | null
           status?: string | null
           title?: string
           type?: string
           updated_at?: string | null
           uploader_id?: string | null
-          year?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "files_publisher_fkey"
-            columns: ["publisher"]
-            isOneToOne: false
-            referencedRelation: "publishers"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "files_uploader_id_fkey"
             columns: ["uploader_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      files: {
+        Row: {
+          cover_mime_type: Database["public"]["Enums"]["cover_mime_type"]
+          cover_path: string
+          created_at: string
+          document_id: string
+          download_count: number
+          extra_meta: Json
+          file_path: string
+          id: string
+          mime_type: Database["public"]["Enums"]["file_mime_type"]
+          order: number
+          pages: number
+          publisher_id: string | null
+          sha256_hash: string
+          size_bytes: number
+          status: Database["public"]["Enums"]["file_status"]
+          title: string
+          uploader_id: string | null
+          year: string | null
+        }
+        Insert: {
+          cover_mime_type: Database["public"]["Enums"]["cover_mime_type"]
+          cover_path: string
+          created_at?: string
+          document_id: string
+          download_count?: number
+          extra_meta?: Json
+          file_path: string
+          id?: string
+          mime_type: Database["public"]["Enums"]["file_mime_type"]
+          order?: number
+          pages: number
+          publisher_id?: string | null
+          sha256_hash: string
+          size_bytes: number
+          status?: Database["public"]["Enums"]["file_status"]
+          title: string
+          uploader_id?: string | null
+          year?: string | null
+        }
+        Update: {
+          cover_mime_type?: Database["public"]["Enums"]["cover_mime_type"]
+          cover_path?: string
+          created_at?: string
+          document_id?: string
+          download_count?: number
+          extra_meta?: Json
+          file_path?: string
+          id?: string
+          mime_type?: Database["public"]["Enums"]["file_mime_type"]
+          order?: number
+          pages?: number
+          publisher_id?: string | null
+          sha256_hash?: string
+          size_bytes?: number
+          status?: Database["public"]["Enums"]["file_status"]
+          title?: string
+          uploader_id?: string | null
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_document_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document_with_publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_document_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_publisher_fkey1"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_uploader_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdl: {
+        Row: {
+          created_at: string
+          document_id: string
+          edition: string | null
+          id: string
+          is_rental: boolean
+          pages: number | null
+          pdl_no: string
+          publisher_id: string | null
+          year: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string
+          edition?: string | null
+          id?: string
+          is_rental?: boolean
+          pages?: number | null
+          pdl_no: string
+          publisher_id?: string | null
+          year?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          edition?: string | null
+          id?: string
+          is_rental?: boolean
+          pages?: number | null
+          pdl_no?: string
+          publisher_id?: string | null
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdl_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document_with_publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdl_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdl_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
             referencedColumns: ["id"]
           },
         ]
@@ -448,26 +587,70 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      document_with_publishers: {
+        Row: {
+          cover_path: string | null
+          created_at: string | null
+          ddc: string | null
+          deleted_at: string | null
+          description: string | null
+          doi: string | null
+          download_count: number | null
+          extra_meta: Json | null
+          file_publisher_id: string | null
+          id: string | null
+          isbn_13: string[] | null
+          language: Database["public"]["Enums"]["language_type"] | null
+          pdl_publisher_id: string | null
+          status: string | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+          uploader_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_publisher_fkey1"
+            columns: ["file_publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdl_publisher_id_fkey"
+            columns: ["pdl_publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_file_upload: {
         Args: {
-          title: string
-          file_path: string
-          hash: string
-          mime_type: string
-          size_bytes: number
-          type: string
+          author_ids: string[]
+          cover_path: string
           description: string
           extra_meta: Json
-          cover_path: string
-          tag_ids: string[]
-          author_ids: string[]
-          user_id: string
-          publisher_id?: string
-          year?: string
+          file_path: string
+          hash: string
           language?: string
+          mime_type: string
+          publisher_id?: string
+          size_bytes: number
+          tag_ids: string[]
+          title: string
+          type: string
+          user_id: string
+          year?: string
         }
         Returns: string
       }
@@ -475,9 +658,18 @@ export type Database = {
         Args: { file_id: string }
         Returns: string
       }
+      pg_execute_sql: {
+        Args: { arguments: Json; sql: string }
+        Returns: Record<string, unknown>[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      cover_mime_type: "image/png"
+      document_type: "book" | "paper" | "note" | "other"
+      file_mime_type: "application/pdf" | "application/epub+zip" | "text/plain"
+      file_status: "uploading" | "live" | "unpublished"
+      language_type: "bn" | "en" | "other"
+      status_type: "live" | "deleted" | "unpublished"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -607,6 +799,13 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      cover_mime_type: ["image/png"],
+      document_type: ["book", "paper", "note", "other"],
+      file_mime_type: ["application/pdf", "application/epub+zip", "text/plain"],
+      file_status: ["uploading", "live", "unpublished"],
+      language_type: ["bn", "en", "other"],
+      status_type: ["live", "deleted", "unpublished"],
+    },
   },
 } as const

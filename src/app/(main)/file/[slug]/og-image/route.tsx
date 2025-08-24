@@ -14,13 +14,12 @@ export async function GET(
   if (!slug) {
     return new Response("Not Found", { status: 404 });
   }
-
   const fileData = await supabase
-    .from("files")
+    .from("documents")
     .select(
       `cover_path,title,
-      authors:file_authors!file_authors_file_id_fkey(
-        file_author:authors!file_authors_author_id_fkey(name,id,slug),
+      authors:document_author!document_author_document_id_fkey(
+        document_author:authors!document_author_author_id_fkey(name,id,slug),
         order
       )
     `
@@ -28,7 +27,7 @@ export async function GET(
     .eq("id", slug)
     .is("deleted_at", null)
     .single();
-
+    
   return new ImageResponse(
     (
       <div tw="p-10 w-full h-full bg-white flex justify-center">
@@ -36,7 +35,7 @@ export async function GET(
           <img
             src={`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/remote/${fileData.data?.cover_path}`}
             alt="Book Cover"
-            tw=" aspect-[94/64] ml-35 h-full rounded-lg "
+            tw="[aspect-ratio:0.681] ml-35 h-full rounded-lg "
           />
           <div tw=" flex flex-col h-full pl-10 justify-center">
             <h1 tw=" text-6xl font-bold">
@@ -52,7 +51,9 @@ export async function GET(
               style={{ whiteSpace: "pre-wrap" }}
               tw=" w-[80%] text-3xl text-gray-800 mt-0"
             >
-              {fileData.data?.authors.map((a) => a.file_author.name).join(", ")}
+              {fileData.data?.authors
+                .map((a) => a.document_author.name)
+                .join(", ")}
             </p>
             <p
               style={{ whiteSpace: "pre-wrap" }}
@@ -60,7 +61,9 @@ export async function GET(
             >
               Explore books, papers, notes including
               {" " + fileData.data?.title} by{" "}
-              {fileData.data?.authors.map((a) => a.file_author.name).join(", ")}{" "}
+              {fileData.data?.authors
+                .map((a) => a.document_author.name)
+                .join(", ")}{" "}
               at μDocs
             </p>
           </div>

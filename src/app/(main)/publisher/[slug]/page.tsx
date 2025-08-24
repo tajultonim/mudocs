@@ -1,5 +1,6 @@
-import { getAuthorBySlug } from "@/app/actions/author-action";
-import { getFilesByAuthorId } from "@/app/actions/file-action";
+import { getPublisherBySlug } from "@/app/actions/publisher-action";
+import { getFilesByPublisherId } from "@/app/actions/file-action";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,12 +14,12 @@ import { CardGrid } from "../../(pages)/(page-layout)/explore/[...ids]/page-cont
 
 export const dynamicParams = false;
 
-export type AuthorWithFilesDetails = {
+export type PublisherWithFilesDetails = {
   id: string;
   name: string;
   slug: string;
   created_at: string; // ISO date string
-  // add other author fields here if needed, e.g.:
+  // add other publisher fields here if needed, e.g.:
   // bio?: string;
   // email?: string;
 
@@ -35,7 +36,7 @@ export type AuthorWithFilesDetails = {
   }[];
 };
 
-export default async function AuthorPage({
+export default async function PublisherPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -43,8 +44,8 @@ export default async function AuthorPage({
   const { slug } = await params;
   try {
 
-    const author = await getAuthorBySlug(slug)
-    const fileQuery = await getFilesByAuthorId(author.id)
+    const publisher = await getPublisherBySlug(slug);
+    const fileQuery = await getFilesByPublisherId(publisher.id);
 
     return (
       <>
@@ -59,7 +60,7 @@ export default async function AuthorPage({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{author.name}</BreadcrumbPage>
+              <BreadcrumbPage>{publisher.name}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -67,7 +68,7 @@ export default async function AuthorPage({
           numberOfPages={Math.ceil(fileQuery.count / 17)}
           pageNumber={1}
           query={fileQuery}
-          title={`From ${author.name}`}
+          title={`From ${publisher.name}`}
         />
       </>
     );
@@ -78,10 +79,9 @@ export default async function AuthorPage({
 }
 
 export async function generateStaticParams() {
-  const res = await supabase.from("authors").select("slug");
-  const authors = res.data || [];
-
-  return authors.map((author: { slug: string }) => ({
-    slug: author.slug,
+  const res = await supabase.from("publishers").select("slug");
+  const publishers = res.data || [];
+  return publishers.map((publisher: { slug: string }) => ({
+    slug: publisher.slug,
   }));
 }

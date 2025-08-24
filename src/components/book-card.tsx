@@ -18,7 +18,7 @@ export default function BookCard({
       <Card className=" p-0">
         <CardContent className="px-0 py-0 pb-2">
           <Image
-            className="rounded-t-xl w-full aspect-[63/94] object-cover"
+            className="rounded-t-xl w-full aspect-[63/94] object-cover border-b"
             src={image}
             alt={title}
             width={(300 * 63) / 94}

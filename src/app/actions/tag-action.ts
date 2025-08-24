@@ -4,7 +4,12 @@ import supabase from "@/lib/supabase";
 import { toSlug } from "@/lib/text-helper";
 import { revalidateSSGPath } from "./revalidation";
 
-export async function create(name: string) {
+export async function create(
+  name: string
+): Promise<
+  | { status: "error"; message: string }
+  | { status: "success"; data: { id: string; name: string } }
+> {
   if (!name.trim().length || !/^[a-zA-Z0-9 ]+$/.test(name)) {
     return { status: "error", message: "Invalid tag name." };
   }
@@ -29,15 +34,15 @@ export async function create(name: string) {
   return { status: "success", data };
 }
 
-export async function getTagInfo(tagId: string) {
-  if (!tagId) {
-    throw new Error("Tag ID is required.");
+export async function getTagInfoBySlug(tagSlug: string) {
+  if (!tagSlug) {
+    throw new Error("Tag slug is required.");
   }
 
   const { data, error } = await supabase
     .from("tags")
     .select("*")
-    .eq("id", tagId)
+    .eq("slug", tagSlug)
     .single();
 
   if (error) {

@@ -1,28 +1,16 @@
 "use client";
 
-import { searchWithQuery } from "@/app/actions/search-action";
+import { ResultType, searchWithQuery } from "@/app/actions/search-action";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Search } from "lucide-react";
 
-interface SearchResultType {
-  id: string;
-  title: string;
-  cover_path: string | null;
-  file_authors: {
-    authors: {
-      name: string;
-    };
-    order: number;
-  }[];
-  type: string;
-}
 
 export default function SearchInput() {
   const [query, setQuery] = useState<string>("");
-  const [searchresults, setSearchresults] = useState<SearchResultType[] | null>(
+  const [searchresults, setSearchresults] = useState<ResultType[] | null>(
     null
   );
   const [isFocused, setIsFocused] = useState(false);
@@ -30,7 +18,7 @@ export default function SearchInput() {
     if (e.key === "Enter" && query.trim().length > 3) {
       const response = await searchWithQuery(query);
       if (response.status === "success") {
-        setSearchresults(response.results as unknown as SearchResultType[]);
+        setSearchresults(response.results as unknown as ResultType[]);
       } else {
         console.error(response.message);
         alert(response.message);
@@ -65,7 +53,7 @@ export default function SearchInput() {
   );
 }
 
-function SearchResult({ data }: { data: SearchResultType }) {
+function SearchResult({ data }: { data: ResultType }) {
   return (
     <Link
       href={`/file/${data.id}`}
@@ -84,8 +72,8 @@ function SearchResult({ data }: { data: SearchResultType }) {
           <div className="">
             <p className=" line-clamp-1">{data.title}</p>
             <p className=" text-sm text-gray-400 line-clamp-1">
-              {data.file_authors
-                .map((author) => author.authors.name)
+              {data.authors
+                .map((author) => author.entry.name)
                 .join(", ")}
             </p>
           </div>

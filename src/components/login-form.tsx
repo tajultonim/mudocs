@@ -110,7 +110,7 @@ export function LoginForm() {
           {error && <div className="text-red-400 mb-4 text-sm">{error}</div>}
           <div className="flex flex-col gap-3">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : "Login"}
+              {loading ? (<>Loading<span className="loading loading-dots loading-xs"></span></>) : "Login"}
             </Button>
           </div>
         </div>

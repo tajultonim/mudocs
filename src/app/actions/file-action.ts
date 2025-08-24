@@ -66,7 +66,7 @@ export async function deleteFile(id: string): Promise<{
 
   if (vres.data.roles.includes("admin")) {
     const { error } = await supabase
-      .from("files")
+      .from("documents")
       .update({ deleted_at: new Date().toISOString() })
       .is("deleted_at", null)
       .eq("id", id);
@@ -77,7 +77,7 @@ export async function deleteFile(id: string): Promise<{
     return { status: "success", message: "File deleted successfully." };
   }
   const { error, data } = await supabase
-    .from("files")
+    .from("documents")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
     .eq("uploader_id", vres.data.id)
@@ -160,24 +160,6 @@ export async function createUpload({
     };
   }
 
-  console.log({
-    title,
-    file_path,
-    hash: sha256_hash,
-    mime_type,
-    size_bytes,
-    type,
-    description: description || "",
-    extra_meta: { isbn, doi },
-    cover_path: cover_path || "",
-    tag_ids: tags,
-    year: year,
-    publisher_id: publisher_id,
-    author_ids: authors,
-    user_id: vres.data.id as string,
-    language: language,
-  })
-
   const { data, error } = await supabase.rpc("create_file_upload", {
     title,
     file_path,
@@ -207,8 +189,6 @@ export async function createUpload({
 }
 
 export async function createDownload(file_id: string, user_id: string) {
-  console.log(user_id);
-
   if (!file_id) {
     return { status: "error", message: "Missing required fields." };
   }
@@ -234,34 +214,30 @@ export async function getFilesByTagId(
   }
 
   const { data, count, error } = await supabase
-    .from("file_tags")
+    .from("document_tag")
     .select(
       `
-      files (
+      documents (
         id,
         title,
-        cover_path,
         download_count,
-        file_authors!file_authors_file_id_fkey (
-          authors!file_authors_author_id_fkey (
-            id,
-            name,
-            slug
-          ),
+        authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
           order
-        )
+        ),
+        cover_path
       )
     `,
       { count: "exact" }
     )
     .eq("tag_id", tagId)
-    .order("download_count", { foreignTable: "files", ascending: false })
-    .range(from, to, { foreignTable: "files" });
+    .order("download_count", { referencedTable: "documents", ascending: false })
+    .range(from, to, { referencedTable: "documents" });
 
   if (error) {
     throw new Error(error.message);
   }
-  return { data: data.map((f) => f.files), count: count || 0 };
+  return { data: data.map((f) => f.documents), count: count || 0 };
 }
 
 export async function getFilesByAuthorId(
@@ -274,34 +250,30 @@ export async function getFilesByAuthorId(
   }
 
   const { data, count, error } = await supabase
-    .from("file_authors")
+    .from("document_author")
     .select(
       `
-    files (
+    documents (
       id,
       title,
-      cover_path,
       download_count,
-      file_authors!file_authors_file_id_fkey (
-        authors!file_authors_author_id_fkey (
-          id,
-          name,
-          slug
-        ),
+      authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
         order
-      )
+      ),
+      cover_path
     )
   `,
       { count: "exact" }
     )
     .eq("author_id", authorId)
-    .order("download_count", { foreignTable: "files", ascending: false })
-    .range(from, to, { foreignTable: "files" });
+    .order("download_count", { foreignTable: "documents", ascending: false })
+    .range(from, to, { foreignTable: "documents" });
 
   if (error) {
     throw new Error(error.message);
   }
-  return { data: data.map((f) => f.files) || [], count: count || 0 };
+  return { data: data.map((f) => f.documents) || [], count: count || 0 };
 }
 
 export async function getFilesByUserId(
@@ -314,19 +286,15 @@ export async function getFilesByUserId(
   }
 
   const { data, count, error } = await supabase
-    .from("files")
+    .from("documents")
     .select(
       `
       id,
       title,
       cover_path,
       download_count,
-      file_authors!file_authors_file_id_fkey (
-        authors!file_authors_author_id_fkey (
-          id,
-          name,
-          slug
-        ),
+      authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
         order
       )
     `,
@@ -360,56 +328,99 @@ export async function getFilesByCategoryTypeByRange({
   ascending?: boolean;
 }) {
   let res = null;
-  if (category == "bookmarks" || category == "s-lib") {
+  if (category == "bookmarks") {
     return { data: [], count: 0 };
   }
+
   if (type) {
-    res = await supabase
-      .from("files")
-      .select(
-        `
+    if (category == "s-lib") {
+      res = await supabase
+        .from("documents")
+        .select(
+          `
+          id,
+          title,
+          download_count,
+          authors:document_author!document_author_document_id_fkey(
+            entry:authors!document_author_author_id_fkey(name,id,slug),
+            order
+          ),
+          cover_path,
+          pdl!inner(id)
+    `,
+          { count: "exact" }
+        )
+        .is("deleted_at", null)
+        .eq("status", "live")
+        .eq("type", type)
+        .order(orderBy, { ascending })
+        .range(from, to);
+    } else {
+      res = await supabase
+        .from("documents")
+        .select(
+          `
       id,
       title,
-      cover_path,
       download_count,
-      file_authors!file_authors_file_id_fkey (
-        authors!file_authors_author_id_fkey (
-          id,
-          name,
-          slug
-        ),
+      authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
         order
-      )
+      ),
+      cover_path
     `,
-        { count: "exact" }
-      )
-      .is("deleted_at", null)
-      .neq("status", "uploading")
-      .eq("type", type)
-      .order(orderBy, { ascending })
-      .range(from, to);
+          { count: "exact" }
+        )
+        .is("deleted_at", null)
+        .eq("status", "live")
+        .eq("type", type)
+        .order(orderBy, { ascending })
+        .range(from, to);
+    }
   } else {
-    res = await supabase
-      .from("files")
-      .select(
-        `
-      *,
-      file_authors!file_authors_file_id_fkey (
-        authors!file_authors_author_id_fkey (
+    if (category == "s-lib") {
+      res = await supabase
+        .from("documents")
+        .select(
+          `
           id,
-          name,
-          slug
-        ),
-        order
-      )
+          title,
+          download_count,
+          authors:document_author!document_author_document_id_fkey(
+            entry:authors!document_author_author_id_fkey(name,id,slug),
+            order
+          ),
+          cover_path,
+          pdl!inner(id)
     `,
-        { count: "exact" }
-      )
-      .is("deleted_at", null)
-      .neq("status", "uploading")
-      .order(orderBy, { ascending })
-      .range(from, to);
+          { count: "exact" }
+        )
+        .is("deleted_at", null)
+        .eq("status", "live")
+        .order(orderBy, { ascending })
+        .range(from, to);
+    } else {
+      res = await supabase
+        .from("documents")
+        .select(
+          `
+      id,
+      title,
+      authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
+        order
+      ),
+      cover_path
+    `,
+          { count: "exact" }
+        )
+        .is("deleted_at", null)
+        .eq("status", "live")
+        .order(orderBy, { ascending })
+        .range(from, to);
+    }
   }
+
   if (res.error) {
     return { data: [], count: 0 };
   }
@@ -423,16 +434,12 @@ export async function getFilesByRange(
   ascending: boolean = false
 ) {
   const { data, error } = await supabase
-    .from("files")
+    .from("documents")
     .select(
       `
       *,
-      file_authors!file_authors_file_id_fkey (
-        authors!file_authors_author_id_fkey (
-          id,
-          name,
-          slug
-        ),
+      authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
         order
       )
     `
@@ -446,4 +453,55 @@ export async function getFilesByRange(
     throw new Error(error.message);
   }
   return data;
+}
+
+type FilesWithPublisherQuery = {
+  id: string;
+  title: string;
+  cover_path: string;
+  download_count: number | null;
+  authors: {
+    entry: {
+      name: string;
+      id: string;
+      slug: string;
+    };
+    order: number;
+  }[];
+}[];
+
+export async function getFilesByPublisherId(
+  publisherId: string,
+  from: number = 0,
+  to: number = 17
+) {
+  if (!publisherId) {
+    throw new Error("Publisher ID is required.");
+  }
+
+  const { data, count, error } = await supabase
+    .from("document_with_publishers")
+    .select(
+      `
+      id,
+      title,
+      cover_path,
+      download_count,
+      authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
+        order
+      )
+  `,
+      { count: "exact" }
+    )
+    .or(
+      `file_publisher_id.eq.${publisherId},pdl_publisher_id.eq.${publisherId}`
+    )
+    .order("download_count", { ascending: false })
+    .range(from, to);
+  if (error) {
+    console.log(error);
+    throw new Error(error.message);
+  }
+  return { data: (data as FilesWithPublisherQuery) || [], count: count || 0 };
 }

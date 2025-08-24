@@ -26,7 +26,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAlert } from "@/components/alerts";
 
@@ -202,7 +202,7 @@ export default function UploadForm({
         </div>
         {/* Form (right) */}
         <div className="flex-1 w-full sm:w-[60%] flex flex-col gap-4">
-          <h1 className="text-2xl font-bold mb-2 text-white">Upload File</h1>
+          <h1 className="text-2xl font-bold mb-2">Upload File</h1>
           <InputField
             title="File Name"
             type="text"
@@ -254,10 +254,7 @@ export default function UploadForm({
               isOrdered
               onNewTag={async (name: string) => {
                 const res = await authoractions.create(name);
-                return {
-                  status: res?.status || "error",
-                  data: res?.data,
-                };
+                return res;
               }}
               onChange={(e) => {
                 setSelectedAuthors(e.value);
@@ -274,17 +271,11 @@ export default function UploadForm({
               }
               title="Publisher"
               onNewTag={(value) => {
-                return publisheractions.create(value).then((res) => {
-                  setSelectedPublisher(res?.data?.id || "");
-                  return {
-                    status: res?.status || "error",
-                    data: res?.data
-                      ? { value: res.data.id, label: res.data.name }
-                      : undefined,
-                  };
-                });
+                return publisheractions.create(value);
               }}
-              onChange={(e) => setSelectedPublisher(e.value)}
+              onChange={(e) => {
+                setSelectedPublisher(e.value);
+              }}
             />
           )}
           <SelectInput
@@ -300,15 +291,17 @@ export default function UploadForm({
               ) {
                 return {
                   status: "error",
-                  data: { value: value, label: value },
+                  message: "Invalid year.",
                 };
               }
               return {
                 status: "success",
-                data: { value: value, label: value },
+                data: { id: value, name: value },
               };
             }}
-            onChange={(e) => setYear(e.value)}
+            onChange={(e) => {
+              setYear(e.value);
+            }}
           />
           <SelectInput
             title="Language"
@@ -324,13 +317,7 @@ export default function UploadForm({
             allowNewTag
             onNewTag={async (name: string) => {
               const res = await tagactions.create(name);
-              if (res?.status == "error") {
-                alert(JSON.stringify(res));
-              }
-              return {
-                status: res?.status || "error",
-                data: res?.data,
-              };
+              return res;
             }}
             onChange={(e) => {
               setSelectedTags(e.value);
@@ -364,9 +351,13 @@ export default function UploadForm({
             }}
           >
             {isloading
-              ? `${percentage.percent}% uploaded (${
-                  (percentage.uploaded_bytes / (1024 * 1024)).toFixed(2)
-                }MB/${(percentage.size_bytes / (1024 * 1024)).toFixed(2)}MB)...`
+              ? `${percentage.percent}% uploaded (${(
+                  percentage.uploaded_bytes /
+                  (1024 * 1024)
+                ).toFixed(2)}MB/${(
+                  percentage.size_bytes /
+                  (1024 * 1024)
+                ).toFixed(2)}MB)...`
               : "Upload"}
           </Button>
         </div>
@@ -390,26 +381,33 @@ function SelectInput({
   onNewTag?: (
     label: string
   ) =>
-    | { status: string; data?: { value: string; label: string } }
-    | Promise<{ status: string; data?: { value: string; label: string } }>;
+    | Promise<
+        | { status: "error"; message: string }
+        | { status: "success"; data: { id: string; name: string } }
+      >
+    | { status: "error"; message: string }
+    | { status: "success"; data: { id: string; name: string } };
 }) {
   const [selectableOptions, setSelectableOptions] = useState(options);
-  const handleNewOption = async (label: string) => {
+  const handleNewOption = async function (label: string): Promise<boolean> {
     if (!onNewTag) {
-      return;
+      return false;
     }
     const newOptionRes = await onNewTag(label);
-    if (!newOptionRes.data || newOptionRes.status !== "success") {
-      return onChange({ value: "" });
+    if (newOptionRes.status !== "success") {
+      alert(newOptionRes.message);
+      onChange({ value: "" });
+      return false;
     }
     setSelectableOptions((prev) => [
       ...prev,
       {
-        value: newOptionRes.data?.value || "",
-        label: newOptionRes.data?.label || "",
+        value: newOptionRes.data?.id || "",
+        label: newOptionRes.data?.name || "",
       },
     ]);
-    onChange({ value: newOptionRes.data.value });
+    onChange({ value: newOptionRes.data.id });
+    return newOptionRes.status == "success";
   };
   return (
     <>
@@ -418,15 +416,16 @@ function SelectInput({
         <ComboBox
           required={required}
           options={selectableOptions}
-          onChange={({ value, label, isNew }) => {
+          onChange={async function ({ value, label, isNew }): Promise<boolean> {
             if (!isNew) {
               const stag = options.find((option) => option.value === value);
               if (stag || value === "") {
                 onChange({ value: stag?.value || "" });
               }
             } else if (isNew && label) {
-              handleNewOption(label);
+              return handleNewOption(label);
             }
+            return true;
           }}
           allowNewTag={typeof onNewTag !== "undefined"}
         />
@@ -454,11 +453,12 @@ function ComboBox({
     value?: string;
     label?: string;
     isNew?: boolean;
-  }) => void;
+  }) => Promise<boolean>;
   allowNewTag?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [currentValue, setCurrentValue] = useState<string | null>(null);
+  const [search, setSearch] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -467,7 +467,7 @@ function ComboBox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="justify-between min-w-[200px] w-full"
         >
           {isNew
             ? currentValue
@@ -477,13 +477,13 @@ function ComboBox({
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-full min-w-[200px] p-0">
         <Command>
           {allowNewTag && (
             <CommandInput
-              onValueChange={(search) => {
+              onValueChange={(s) => {
                 setIsNew(false);
-                setCurrentValue(search);
+                setSearch(s);
               }}
               placeholder="Search..."
               className="h-9"
@@ -492,13 +492,19 @@ function ComboBox({
           <CommandList>
             <CommandEmpty>
               No entry found
-              {allowNewTag && currentValue?.toLocaleLowerCase().trim() ? (
+              {allowNewTag && search?.toLocaleLowerCase().trim() ? (
                 <>
                   <br />
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsNew(true);
-                      onChange({ label: currentValue, isNew: true });
+                      const oc = await onChange({ label: search, isNew: true });
+                      if (oc) {
+                        setCurrentValue(search);
+                      } else {
+                        setSearch(null);
+                        setIsNew(false);
+                      }
                       setOpen(false);
                     }}
                     variant={"secondary"}
@@ -513,35 +519,86 @@ function ComboBox({
               )}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {allowNewTag && search?.toLocaleLowerCase().trim() ? (
                 <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={(v) => {
+                  asChild
+                  key={search + ""}
+                  value={search + ""}
+                  onSelect={async (v) => {
                     if (required && v === currentValue) {
                       return;
                     }
-                    setCurrentValue(v === currentValue ? "" : v);
-                    setIsNew(false);
-                    onChange({
-                      value: v === currentValue ? "" : v,
-                      label: option.label,
-                      isNew: false,
-                    });
+                    if (options.find((option) => option.label === v)) {
+                      setCurrentValue(v === currentValue ? "" : v);
+                      setIsNew(false);
+                      await onChange({
+                        value: v === currentValue ? "" : v,
+                        label: search + "",
+                        isNew: false,
+                      });
+                    } else {
+                      setIsNew(true);
+                      const oc = await onChange({
+                        label: search + "",
+                        isNew: true,
+                      });
+                      if (oc) {
+                        setCurrentValue(search);
+                      } else {
+                        setSearch(null);
+                        setIsNew(false);
+                      }
+                      setOpen(false);
+                    }
                     setOpen(false);
                   }}
                 >
-                  {option.label}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      currentValue === option.value
-                        ? "opacity-100"
-                        : "opacity-0"
+                  <div>
+                    {search + ""}
+                    {!options.find(
+                      (option) => option.label === search + ""
+                    ) && <Plus className={cn("ml-auto")} />}
+                    {currentValue == search && (
+                      <Check className={cn("ml-auto")} />
                     )}
-                  />
+                  </div>
                 </CommandItem>
-              ))}
+              ) : (
+                <></>
+              )}
+              {options
+                .filter((option) => option.label != search)
+                .map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value + "|" + option.label}
+                    onSelect={(vn) => {
+                      const v = vn.split("|")[0];
+                      if (required && v === currentValue) {
+                        return;
+                      }
+                      setCurrentValue(v === currentValue ? "" : v);
+                      setIsNew(false);
+                      onChange({
+                        value: v === currentValue ? "" : v,
+                        label: option.label,
+                        isNew: false,
+                      });
+                      setSearch(null);
+                      setOpen(false);
+                    }}
+                  >
+                    {option.label}
+                    <Check
+                      className={cn(
+                        "ml-auto",
+                        currentValue === option.value
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
             </CommandGroup>
           </CommandList>
         </Command>

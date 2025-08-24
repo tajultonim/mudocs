@@ -1,5 +1,5 @@
 import { getFilesByTagId } from "@/app/actions/file-action";
-import { getTagInfo } from "@/app/actions/tag-action";
+import { getTagInfoBySlug } from "@/app/actions/tag-action";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,10 +19,8 @@ export default async function TagPage({
   try {
     const { slug } = await params;
 
-    const [tagInfo, filesInfo] = await Promise.all([
-      getTagInfo(slug),
-      getFilesByTagId(slug),
-    ]);
+    const tagInfo = await getTagInfoBySlug(slug);
+    const filesInfo = await getFilesByTagId(tagInfo.id);
 
     return (
       <>
@@ -56,10 +54,9 @@ export default async function TagPage({
 }
 
 export async function generateStaticParams() {
-  const res = await supabase.from("tags").select("id");
+  const res = await supabase.from("tags").select("slug");
   const tags = res.data || [];
-
-  return tags.map((tag: { id: string }) => ({
-    slug: tag.id,
+  return tags.map((tag: { slug: string }) => ({
+    slug: tag.slug,
   }));
 }

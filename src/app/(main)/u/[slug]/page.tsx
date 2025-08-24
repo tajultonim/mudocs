@@ -1,5 +1,5 @@
 import { getFilesByUserId } from "@/app/actions/file-action";
-import { getUrserById } from "@/app/actions/user-action";
+import { getUserByUsername } from "@/app/actions/user-action";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,10 +21,9 @@ export default async function UserProfilePage({
   const { slug } = await params;
 
   // Fetch user data from the database
-  const [userData, userFiles] = await Promise.all([
-    getUrserById(slug),
-    getFilesByUserId(slug),
-  ]);
+
+  const userData= await getUserByUsername(slug);
+  const userFiles = await getFilesByUserId(userData.id)
 
   return (
     <>
@@ -56,10 +55,10 @@ export default async function UserProfilePage({
 }
 
 export async function generateStaticParams() {
-  const res = await supabase.from("users").select("id"); // returns list of books
+  const res = await supabase.from("users").select("username"); // returns list of books
   const users = res.data || [];
 
-  return users.map((user: { id: string }) => ({
-    slug: user.id,
+  return users.map((user: { username: string }) => ({
+    slug: user.username,
   }));
 }

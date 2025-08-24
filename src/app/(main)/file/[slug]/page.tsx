@@ -1,9 +1,35 @@
-import InfoBar from "@/components/info-bar";
 import supabase from "@/lib/supabase";
 import Image from "next/image";
 import Link from "next/link";
-import ButtonSet from "./buttonset";
 import { Metadata } from "next";
+import {
+  Fingerprint,
+  Hash,
+  Languages,
+  List,
+  LucideIcon,
+  Pen,
+  Link as LinkIcon,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import OnlineList from "./online-list";
+import { Divider } from "@/components/divider";
+import { hyphenateISBN } from "@/lib/text-helper";
 
 export const dynamic = "force-static";
 
@@ -14,10 +40,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const fileData = await supabase
-    .from("files")
-    .select("title, description, cover_path")
+    .from("documents")
+    .select("title, description")
     .is("deleted_at", null)
-    .neq("status", "uploading")
+    .eq("status", "live")
     .eq("id", slug)
     .single();
 
@@ -98,24 +124,27 @@ export default async function FilePage({
   const { slug } = await params;
 
   const fileData = await supabase
-    .from("files")
+    .from("documents")
     .select(
       `*,
-      authors:file_authors!file_authors_file_id_fkey(
-        file_author:authors!file_authors_author_id_fkey(name,id,slug),
+      authors:document_author!document_author_document_id_fkey(
+        document_author:authors!document_author_author_id_fkey(name,id,slug),
         order
       ),
-      tags:file_tags!file_tags_file_id_fkey(
-        file_tag:tags!file_tags_tag_id_fkey(name,id,slug)
+      tags:document_tag!document_tag_document_id_fkey(
+        document_tag:tags!document_tag_tag_id_fkey(name,id,slug)
       ),
       uploader:users(id, username),
-      publisher:publishers(id, name)
+      files(*,publisher:publishers(name,slug),uploader:users(id)),
+      pdl(*,publisher:publishers(name,slug))
     `
     )
     .eq("id", slug)
     .is("deleted_at", null)
-    .neq("status", "uploading")
+    .eq("status", "live")
+    .order("order", { referencedTable: "files", ascending: true })
     .single();
+
   const data = fileData.data;
   const fileType = data?.type || "other";
 
@@ -145,7 +174,7 @@ export default async function FilePage({
             name: data?.title,
             author: data?.authors.map((author) => ({
               "@type": "Person",
-              name: author.file_author.name,
+              name: author.document_author.name,
             })),
             datePublished: "2003-10-01",
             isbn: (data?.extra_meta as { isbn?: string })?.isbn,
@@ -154,7 +183,7 @@ export default async function FilePage({
             ...(fileType == "note" && { educationalLevel: "University" }),
             image: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}/og-image`,
             url: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
-            keywords: data?.tags.map((tag) => tag.file_tag.name),
+            keywords: data?.tags.map((tag) => tag.document_tag.name),
             potentialAction: {
               "@type": "ViewAction",
               target: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/file/${data?.id}`,
@@ -163,103 +192,158 @@ export default async function FilePage({
         }}
       />
       <div className="flex flex-col gap-2">
-        <div className="p-8 py-2 rounded w-full flex flex-col md:flex-row gap-8 items-center">
+        <div className="p-2 md:p-8 py-2 rounded-xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start">
           <Image
             src={`/remote/${fileData.data?.cover_path}`}
             alt={fileData.data?.title || "Book Cover"}
             width={250}
             height={350}
             quality={1}
-            className="rounded"
+            className="rounded aspect-[64/94] object-cover border"
           />
           <div className="flex-1 w-full">
-            <h1 className="text-2xl font-bold mb-4">{fileData.data?.title}</h1>
-            <InfoBar
-              label="Description"
-              value={fileData.data?.description || "-"}
-            />
-            <InfoBar
-              label="Tags"
-              value={
-                fileData.data?.tags.map((tag, index) => (
-                  <span key={tag.file_tag.id}>
-                    <Link
-                      href={"/tag/" + tag.file_tag.id}
-                      className=" text-blue-500"
-                    >
-                      {tag.file_tag.name}
-                    </Link>
-                    <span
-                      className={
-                        index === fileData.data?.tags.length - 1 ? "hidden" : ""
-                      }
-                    >
-                      {", "}
-                    </span>
-                  </span>
-                )) || "-"
-              }
-            />
-            <InfoBar
-              label="Authors"
-              value={
-                fileData.data?.authors
-                  .sort((a, b) => a.order - b.order)
-                  .map((author, index) => (
-                    <span key={author.file_author.id}>
-                      <Link
-                        href={"/author/" + author.file_author.id}
-                        className=" text-blue-500"
-                      >
-                        {author.file_author.name}
-                      </Link>
-                      <span
-                        className={
-                          index === fileData.data?.authors.length - 1
-                            ? "hidden"
-                            : ""
-                        }
-                      >
-                        {", "}
-                      </span>
-                    </span>
-                  )) || "-"
-              }
-            />
-            <InfoBar
-              label="Uploaded by"
-              value={
-                fileData.data?.uploader?.username ? (
-                  <Link
-                    className="text-blue-500"
-                    href={`/u/${fileData.data?.uploader?.id || ""}`}
-                  >
-                    {fileData.data.uploader.username}
-                  </Link>
-                ) : (
-                  <span className="text-red-400">Unknown</span>
-                )
-              }
-            />
-            <InfoBar label="Type" value={fileData.data?.type || "-"} />
-            {/* <InfoBar
-              label="Size"
-              value={
-                ((fileData.data?.size_bytes ?? 0) / (1024 * 1024)).toFixed(2) +
-                " MB"
-              }
-            /> */}
-            {/* <InfoBar
-              label="Download Count"
-              value={fileData.data?.download_count || 0}
-            /> */}
-            <div className="mt-4">
-              <ButtonSet
-                id={fileData.data?.id || ""}
-                title={fileData.data?.title || ""}
-                uploader_id={fileData.data?.uploader?.id || ""}
-              />
+            <div className="flex gap-2">
+              {fileData.data.tags.map((tag) => (
+                <Link
+                  key={tag.document_tag.id}
+                  href={`/tag/${tag.document_tag.slug}`}
+                >
+                  <div className=" bg-slate-500 inline-block rounded-xl px-2 text-white text-sm hover:bg-slate-600 whitespace-nowrap">
+                    {tag.document_tag.name}
+                  </div>
+                </Link>
+              ))}
             </div>
+            <h1 className="text-2xl mt-1 font-bold">{fileData.data?.title}</h1>
+            <div className="flex">
+              {fileData.data.authors.map((a, i) => (
+                <Link
+                  key={a.document_author.slug}
+                  className=" hover:underline"
+                  href={`/author/${a.document_author.slug}`}
+                >
+                  {a.document_author.name}
+                  {i == fileData.data.authors.length - 1 ? "" : ", "}
+                </Link>
+              ))}
+            </div>
+            <Divider />
+            {fileData.data?.description && (
+              <div className="mt-2 rounded p-2">
+                {fileData.data?.description}
+              </div>
+            )}
+            {fileData.data?.language && (
+              <>
+                <IconLabel className="mt-2" Icon={Languages}>
+                  <span className=" font-semibold mr-2 text-sm">Language</span>
+                  {fileData.data.language == "en"
+                    ? "English"
+                    : fileData.data.language == "bn"
+                    ? "Bengali"
+                    : "Unknown"}
+                </IconLabel>
+              </>
+            )}
+            {(fileData.data.isbn_13 ||
+              fileData.data.doi ||
+              fileData.data.ddc) && (
+              <IconLabel className="mt-2" Icon={Fingerprint}>
+                {fileData.data.isbn_13 && (
+                  <div>
+                    <span className=" font-semibold mr-2 text-sm">ISBN</span>
+                    {fileData.data.isbn_13
+                      .map((isbn) => hyphenateISBN(isbn))
+                      .join(", ")}
+                  </div>
+                )}
+                {fileData.data.doi && (
+                  <div>
+                    <span className=" font-semibold mr-2 text-sm">DOI</span>
+                    <Link
+                      href={`https://doi.org/${fileData.data.doi}`}
+                      className="hover:underline"
+                    >
+                      {fileData.data.doi}
+                    </Link>
+                  </div>
+                )}
+                {fileData.data.ddc && (
+                  <div>
+                    <span className=" font-semibold mr-2 text-sm">DDC</span>
+                    {fileData.data.ddc}
+                  </div>
+                )}
+              </IconLabel>
+            )}
+            {!!fileData.data?.pdl.length && (
+              <>
+                <Link className="group" href={`/explore/s-lib/`}>
+                  <h2 className="text-lg font-semibold mt-4">
+                    Seminar Library
+                    <LinkIcon
+                      size={16}
+                      className="inline-block ml-1 group-hover:text-slate-500"
+                    />
+                  </h2>
+                </Link>
+                <Divider />
+                {!!fileData.data?.pdl.length && (
+                  <IconLabel className=" mt-2" Icon={Hash}>
+                    {!!fileData.data?.pdl?.filter((e) => !e.is_rental)
+                      .length && (
+                      <div>
+                        <span className=" font-semibold mr-2 text-sm">
+                          Reading Room
+                        </span>
+                        {fileData.data?.pdl?.filter((e) => !e.is_rental).length}
+                      </div>
+                    )}
+                    {!!fileData.data?.pdl?.filter((e) => e.is_rental)
+                      .length && (
+                      <div>
+                        <span className=" font-semibold mr-2 text-sm">
+                          Rental
+                        </span>
+                        {fileData.data?.pdl?.filter((e) => e.is_rental).length}
+                      </div>
+                    )}
+                  </IconLabel>
+                )}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>PDL NO.</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Publisher</TableHead>
+                      <TableHead>Year</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {fileData.data.pdl.map((pdl, index) => (
+                      <TableRow key={pdl.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{pdl.pdl_no}</TableCell>
+                        <TableCell>
+                          {pdl.is_rental ? "Rental Library" : "Reading Room"}
+                        </TableCell>
+                        <TableCell>
+                          <Link
+                            className="hover:underline"
+                            href={`/publisher/${pdl.publisher?.slug}`}
+                          >
+                            {pdl.publisher?.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{pdl.year}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </>
+            )}
+            <OnlineList files={fileData.data?.files || []} />
           </div>
         </div>
       </div>
@@ -267,11 +351,31 @@ export default async function FilePage({
   );
 }
 
-export async function generateStaticParams() {
-  const res = await supabase.from("files").select("id").is("deleted_at", null).neq("status", "uploading"); // returns list of books
-  const books = res.data || [];
-
-  return books.map((book: { id: string }) => ({
-    slug: book.id,
-  }));
+export function IconLabel({
+  Icon,
+  children,
+  className,
+}: {
+  Icon: LucideIcon;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`flex gap-2 ${className}`}>
+      <Icon size={18} className="h-6" />
+      <div>{children}</div>
+    </div>
+  );
 }
+
+// export async function generateStaticParams() {
+//   const res = await supabase
+//     .from("files")
+//     .select("id")
+//     .is("deleted_at", null)
+//     .neq("status", "uploading"); // returns list of books
+//   const books = res.data || [];
+//   return books.map((book: { id: string }) => ({
+//     slug: book.id,
+//   }));
+// }

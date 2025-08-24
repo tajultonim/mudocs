@@ -2,31 +2,42 @@
 
 import supabase from "@/lib/supabase";
 
-export async function searchWithQuery(query: string) {
-  if (!query.trim()) {
-    return { status: "error", message: "Query cannot be empty." };
-  }
 
-  const fileQuery = await supabase
-    .from("files")
+function supabasequery(query:string){
+  return supabase
+    .from("documents")
     .select(
       `
     id,
     title,
     cover_path,
-    file_authors!file_authors_file_id_fkey(
-      authors!file_authors_author_id_fkey(name),
-      order
-    ),
+    authors:document_author!document_author_document_id_fkey(
+        entry:authors!document_author_author_id_fkey(name,id,slug),
+        order
+      ),
     type
   `
     )
     .ilike("title", `%${query}%`);
+}
+
+export type ResultType = NonNullable<Awaited<ReturnType<typeof supabasequery>>["data"]>[number];
+
+export async function searchWithQuery(
+  query: string
+): Promise<
+  { status: "error"; message: string } | { status: "success"; results: ResultType[] }
+> {
+  if (!query.trim()) {
+    return { status: "error", message: "Query cannot be empty." };
+  }
+
+  const fileQuery = await supabasequery(query)
 
   if (fileQuery.error) {
     console.log(fileQuery.error);
     return { status: "error", message: "Failed to fetch search results." };
   }
 
-  return { status: "success", results: fileQuery.data };
+  return { status: "success", results: fileQuery.data as ResultType[] };
 }

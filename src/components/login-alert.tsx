@@ -35,7 +35,7 @@ export function LoginPopup({
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" disabled={isLoading}>
-              {isLoading ? "Loading..." : "Cancel"}
+              {isLoading ? (<>Loading<span className="loading loading-dots loading-xs"></span></>) : "Cancel"}
             </Button>
           </DialogClose>
         </DialogFooter>

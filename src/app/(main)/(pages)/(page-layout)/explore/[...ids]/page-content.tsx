@@ -173,9 +173,9 @@ export function CardGrid({
               <BookCard
                 key={book.id}
                 title={book.title}
-                author={book.file_authors
+                author={book.authors
                   .sort((a, b) => a.order - b.order)
-                  .map((a: { authors: { name: string } }) => a.authors.name)
+                  .map((a: { entry: { name: string } }) => a.entry.name)
                   .join(", ")}
                 image={`/remote/${book.cover_path}`}
                 slug={"/file/" + book.id}

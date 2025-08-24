@@ -1,14 +1,14 @@
 import supabase from "@/lib/supabase";
 
-export async function getUrserById(userId: string) {
-  if (!userId) {
-    throw new Error("User ID is required.");
+export async function getUserByUsername(username: string) {
+  if (!username) {
+    throw new Error("User username is required.");
   }
 
   const { data, error } = await supabase
     .from("users")
     .select("*")
-    .eq("id", userId)
+    .eq("username", username)
     .single();
 
   if (error) {
