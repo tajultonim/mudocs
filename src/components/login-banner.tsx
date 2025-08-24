@@ -3,7 +3,7 @@
 import { useAuth } from "@/providers/authprovider";
 import { LoginPopup } from "./login-alert";
 export default function LoginBanner() {
-  const { user, logout, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <>

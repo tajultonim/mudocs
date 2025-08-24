@@ -1,14 +1,9 @@
 "use client";
 
-import { deleteFile } from "@/app/actions/file-action";
-import { useAlert } from "@/components/alerts";
-import DownloadButton from "@/components/download-button";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/authprovider";
 import {
   Download,
   Ellipsis,
-  List,
   LucideIcon,
   Pencil,
   Trash2,
@@ -28,8 +23,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Divider } from "@/components/divider";

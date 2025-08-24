@@ -6,9 +6,7 @@ import {
   Fingerprint,
   Hash,
   Languages,
-  List,
   LucideIcon,
-  Pen,
   Link as LinkIcon,
 } from "lucide-react";
 import {
@@ -19,14 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import OnlineList from "./online-list";
 import { Divider } from "@/components/divider";
 import { hyphenateISBN } from "@/lib/text-helper";

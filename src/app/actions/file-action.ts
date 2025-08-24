@@ -189,6 +189,7 @@ export async function createUpload({
 }
 
 export async function createDownload(file_id: string, user_id: string) {
+  console.log(user_id)
   if (!file_id) {
     return { status: "error", message: "Missing required fields." };
   }
